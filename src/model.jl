@@ -105,8 +105,11 @@ end
 
 
 """
+    constrain_loads(m, p::Inputs)
 
-set loads to negative of input values, which are normalized by Sbase when creating Inputs
+- set loads to negative of Inputs.Pload, which are normalized by Sbase when creating Inputs
+- keys of Pload must match Inputs.busses. Any missing keys have load set to zero.
+- Inputs.substation_bus is unconstrained, slack bus
 """
 function constrain_loads(m, p::Inputs)
     Pⱼ = m[:Pⱼ]
