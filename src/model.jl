@@ -5,7 +5,6 @@ function build_ldf!(m::JuMP.AbstractModel, p::Inputs)
     constrain_substation_voltage(m, p)  # (10c)
     constrain_KVL(m, p)  # (10e)
     constrain_loads(m, p)
-    constrain_bounds(m, p)
 
 end
 
