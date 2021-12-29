@@ -22,6 +22,10 @@ mutable struct Inputs
     Nlte_cons::Int
     pf::Float64
     Nnodes::Int
+    P_up_bound::Float64
+    Q_up_bound::Float64
+    P_lo_bound::Float64
+    Q_lo_bound::Float64
 end
 
 
@@ -40,7 +44,11 @@ function Inputs(
     v_uplim=1.05,
     Ntimesteps=1, 
     Nequality_cons=0, 
-    Nlte_cons=0
+    Nlte_cons=0,
+    P_up_bound=1e4,
+    Q_up_bound=1e4,
+    P_lo_bound=-1e4,
+    Q_lo_bound=-1e4,
     )
     Ibase = Sbase / (Vbase * sqrt(3))
     # Ibase^2 should be used to recover amperage from lᵢⱼ ?
@@ -73,7 +81,11 @@ function Inputs(
         Nequality_cons,
         Nlte_cons,
         0.1,  # power factor
-        length(busses)  # Nnodes
+        length(busses),  # Nnodes
+        P_up_bound,
+        Q_up_bound,
+        P_lo_bound,
+        Q_lo_bound,
     )
 end
 
@@ -91,7 +103,11 @@ end
         v_uplim=1.05,
         Ntimesteps=1, 
         Nequality_cons=0, 
-        Nlte_cons=0
+        Nlte_cons=0,
+        P_up_bound,
+        Q_up_bound,
+        P_lo_bound,
+        Q_lo_bound,
         )
 
 Inputs constructor
@@ -109,7 +125,11 @@ function Inputs(
     v_uplim=1.05,
     Ntimesteps=1, 
     Nequality_cons=0, 
-    Nlte_cons=0
+    Nlte_cons=0,
+    P_up_bound=1e4,
+    Q_up_bound=1e4,
+    P_lo_bound=-1e4,
+    Q_lo_bound=-1e4,
     )
     edges, linecodes, linelengths = dss_parse_lines(dsslinesfilepath)
     linecodes_dict = dss_parse_line_codes(dsslinecodesfilepath, linecodes)
@@ -128,6 +148,10 @@ function Inputs(
         v_uplim = v_uplim, 
         Ntimesteps=Ntimesteps,
         Nequality_cons=Nequality_cons,
-        Nlte_cons=Nlte_cons
+        Nlte_cons=Nlte_cons,
+        P_up_bound=P_up_bound,
+        Q_up_bound=Q_up_bound,
+        P_lo_bound=P_lo_bound,
+        Q_lo_bound=Q_lo_bound,
     )
 end

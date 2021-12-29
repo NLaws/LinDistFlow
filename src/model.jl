@@ -14,19 +14,24 @@ function add_variables(m, p::Inputs)
     T = 1:p.Ntimesteps
     # bus injections
     @variables m begin
-        Pⱼ[p.busses, T]
-        Qⱼ[p.busses, T]
+        p.P_lo_bound <= Pⱼ[p.busses, T] <= p.P_up_bound
+        p.Q_lo_bound <= Qⱼ[p.busses, T] <= p.Q_up_bound
     end
 
     # voltage squared
-    @variable(m, 0 <= vsqrd[p.busses, T])
+    @variable(m, p.v_lolim^2 <= vsqrd[p.busses, T] <= p.v_uplim^2 ) 
+
+    p.Nlte_cons += 6 * p.Nnodes * p.Ntimesteps
     
     ij_edges = [string(i*"-"*j) for j in p.busses for i in i_to_j(j, p)]
+    Nedges = length(ij_edge)
 
     # line flows, power sent from i to j
-    @variable(m, Pᵢⱼ[ij_edges, T])
+    @variable(m, p.P_lo_bound <= Pᵢⱼ[ij_edges, T] <= p.P_up_bound )
     
-    @variable(m, Qᵢⱼ[ij_edges, T])
+    @variable(m, p.Q_lo_bound <= Qᵢⱼ[ij_edges, T] <= p.Q_up_bound )
+
+    p.Nlte_cons += 4 * Nedges * p.Ntimesteps
 end
 
 
@@ -141,64 +146,6 @@ end
 
 
 function constrain_bounds(m::JuMP.AbstractModel, p::Inputs)
-    # TODO add bounds to Inputs
-    # ld_busses = setdiff(p.busses, [p.substation_bus])
-    T = 1:p.Ntimesteps
-    
-    # node injections
-    @constraint(m, [b in p.busses, t in T],
-        m[:Pⱼ][b, t] <= 1e4
-    )
-    p.Nlte_cons += p.Nnodes * p.Ntimesteps
-    
-    @constraint(m, [b in p.busses, t in T],
-        -1e4 - m[:Pⱼ][b, t] <= 0
-    )
-    p.Nlte_cons += p.Nnodes * p.Ntimesteps
-    
-    @constraint(m, [b in p.busses, t in T],
-        m[:Qⱼ][b, t] <= 1e4
-    )
-    p.Nlte_cons += p.Nnodes * p.Ntimesteps
-    
-    @constraint(m, [b in p.busses, t in T],
-        -1e4 - m[:Qⱼ][b, t] <= 0
-    )
-    p.Nlte_cons += p.Nnodes * p.Ntimesteps
-    
-    # voltage squared
-    @constraint(m, [b in p.busses, t in T],
-        m[:vsqrd][b, t] <= p.v_uplim^2
-    )
-    p.Nlte_cons += p.Nnodes * p.Ntimesteps
-    
-    @constraint(m, [b in p.busses, t in T],
-        p.v_lolim^2 - m[:vsqrd][b, t] <= 0
-    )
-    p.Nlte_cons += p.Nnodes * p.Ntimesteps
-    
-    # line flows, power sent from i to j
-    ij_edges = [string(i*"-"*j) for j in p.busses for i in i_to_j(j, p)]
-    Nedges = length(ij_edges)
-    
-    @constraint(m, [e in ij_edges, t in T],
-        m[:Pᵢⱼ][e,t] ≤ 1e4
-    )
-    p.Nlte_cons += Nedges * p.Ntimesteps
-    
-    @constraint(m, [e in ij_edges, t in T],
-        -1e4 - m[:Pᵢⱼ][e,t] ≤ 0
-    )
-    p.Nlte_cons += Nedges * p.Ntimesteps
-    
-    @constraint(m, [e in ij_edges, t in T],
-        m[:Qᵢⱼ][e,t] ≤ 1e4
-    )
-    p.Nlte_cons += Nedges * p.Ntimesteps
-    
-    @constraint(m, [e in ij_edges, t in T],
-        -1e4 - m[:Qᵢⱼ][e,t] ≤ 0
-    )
-    p.Nlte_cons += Nedges * p.Ntimesteps
+    @info("LinDistFlow.constrain_bounds is deprecated. Include bounds in LinDistFlow.Inputs.")
     nothing
 end
