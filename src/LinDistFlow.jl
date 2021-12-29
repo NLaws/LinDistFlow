@@ -8,6 +8,7 @@ import SparseArrays: sparse
 
 export 
     Inputs,
+    singlephase38linesInputs,
     dsstxt_to_sparse_array, 
     dss_parse_lines, 
     dss_parse_line_codes,

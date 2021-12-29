@@ -189,6 +189,13 @@ function singlephase38linesInputs(;
     v_uplim = 1.05,
     v_lolim = 0.95,
     )
+
+    if isempty(Pload)  # fill in default loadnodes
+        Pload = Dict(k => Real[] for k in loadnodes)
+    end
+    if isempty(Qload)  # fill in default loadnodes
+        Qload = Dict(k => Real[] for k in loadnodes)
+    end
     folderpath = joinpath(dirname(@__FILE__), "..", "test", "data")
     Inputs(
         joinpath(folderpath, "singlephase38lines.dss"), 
