@@ -24,7 +24,7 @@ function add_variables(m, p::Inputs)
     p.Nlte_cons += 6 * p.Nnodes * p.Ntimesteps
     
     ij_edges = [string(i*"-"*j) for j in p.busses for i in i_to_j(j, p)]
-    Nedges = length(ij_edge)
+    Nedges = length(ij_edges)
 
     # line flows, power sent from i to j
     @variable(m, p.P_lo_bound <= Pᵢⱼ[ij_edges, T] <= p.P_up_bound )
