@@ -61,6 +61,9 @@ function Inputs(
     end
     busses = unique(busses)
 
+    if v_lolim < 0 @error("lower voltage limit v_lolim cannot be less than zero") end
+    if v_uplim < 0 @error("upper voltage limit v_uplim cannot be less than zero") end
+
     Inputs(
         edges,
         linecodes,
