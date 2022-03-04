@@ -1,5 +1,8 @@
 # LinDistFlow Changelog
 
+## v0.1.3
+- remove CSV dependency
+
 ## v0.1.2
 - upgrade Manifest.toml and Project.toml for Julia 1.7
 
