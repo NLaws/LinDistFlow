@@ -1,5 +1,8 @@
 # LinDistFlow Changelog
 
+## v0.1.4
+- update dependencies (JuMP 1.0, HiGHS for testing)
+
 ## v0.1.3
 - remove CSV dependency
 
