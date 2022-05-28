@@ -20,9 +20,8 @@ Random.seed!(42)
     Vbase = 12.5e3
 
     ldf_inputs = Inputs(
-        "data/singlephase38lines.dss", 
-        "0", 
-        "data/singlephase38linecodes.dss";
+        "data/singlephase38lines/master.dss", 
+        "0";
         Pload=Pload, 
         Qload=Qload,
         Sbase=Sbase, 
@@ -40,4 +39,9 @@ Random.seed!(42)
 
     @test termination_status(m) == MOI.OPTIMAL
 
+end
+
+
+@testset "multiphase openDSS" begin
+    
 end

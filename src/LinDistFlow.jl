@@ -4,13 +4,13 @@ using JuMP
 using LinearAlgebra
 using Logging
 import SparseArrays: sparse
+import PowerModelsDistribution: parse_dss
 
 export 
     Inputs,
     singlephase38linesInputs,
     dsstxt_to_sparse_array, 
-    dss_parse_lines, 
-    dss_parse_line_codes,
+    parse_dss,
     build_ldf!,
     add_variables,
     constrain_power_balance,

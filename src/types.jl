@@ -94,9 +94,8 @@ end
 
 """
     Inputs(
-        dsslinesfilepath::String, 
+        dssfilepath::String, 
         substation_bus::String, 
-        dsslinecodesfilepath::String;
         Pload::AbstractDict, 
         Qload::AbstractDict, 
         Sbase=1, 
@@ -116,9 +115,8 @@ end
 Inputs constructor
 """
 function Inputs(
-    dsslinesfilepath::String, 
-    substation_bus::String, 
-    dsslinecodesfilepath::String;
+    dssfilepath::String, 
+    substation_bus::String;
     Pload::AbstractDict, 
     Qload::AbstractDict, 
     Sbase=1, 
@@ -134,8 +132,9 @@ function Inputs(
     P_lo_bound=-1e4,
     Q_lo_bound=-1e4,
     )
-    edges, linecodes, linelengths = dss_parse_lines(dsslinesfilepath)
-    linecodes_dict = dss_parse_line_codes(dsslinecodesfilepath, linecodes)
+    d = parse_dss(dssfilepath)
+    edges, linecodes, linelengths, linecodes_dict = dss_dict_to_arrays(d)
+
     Inputs(
         edges,
         linecodes,
@@ -199,11 +198,10 @@ function singlephase38linesInputs(;
     if isempty(Qload)  # fill in default loadnodes
         Qload = Dict(k => Real[] for k in loadnodes)
     end
-    folderpath = joinpath(dirname(@__FILE__), "..", "test", "data")
+    
     Inputs(
-        joinpath(folderpath, "singlephase38lines.dss"), 
-        "0", 
-        joinpath(folderpath, "singlephase38linecodes.dss");
+        joinpath(dirname(@__FILE__), "..", "test", "data", "singlephase38lines", "master.dss"), 
+        "0";
         Pload=Pload, 
         Qload=Qload,
         Sbase=Sbase, 
