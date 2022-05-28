@@ -3,7 +3,6 @@ module LinDistFlow
 using JuMP
 using LinearAlgebra
 using Logging
-using CSV
 import SparseArrays: sparse
 
 export 
