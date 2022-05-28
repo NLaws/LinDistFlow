@@ -42,29 +42,34 @@ end
     function dss_parse_lines(fp::String)
 
 Parse a openDSS line codes file, returning 
-    - edges, an array of tuples with 2 values each for the sending and receiving busses on each edge
+    - edges, an array of tuples with 2 string values each for the sending and receiving busses on each edge
     - linecodes, an array of string
     - linelengths, an array of float
+
+TODO is there a standard order for the line values? This function assumes that the order is:
+    New Line.650632    Phases=3 Bus1=RG60.1.2.3   Bus2=632.1.2.3  LineCode=mtx601 Length=2000 units=ft
 """
 function dss_parse_lines(fp::String)
     edges = Tuple[]
     linecodes = String[]
     linelengths = Float64[]
     for line in eachline(fp)
-        N = length(line)
-        if startswith(line, "New Line")
+        if startswith(line, "New Line.") && !(contains(line, "Switch"))
+            N = length(line)
             name = chop(line, head=findfirst(".", line)[end], tail=N-findfirst("  ", line)[1]+1)
-            if startswith(name, "L")
-                bus1 = strip(chop(line, head=findfirst("Bus1=", line)[end], tail=N-findfirst("Bus2", line)[1]+1))
-                bus2 = strip(chop(line, head=findfirst("Bus2=", line)[end], tail=N-findfirst("LineCode", line)[1]+1))
-                LineCode = strip(chop(line, head=findfirst("LineCode=", line)[end], tail=N-findfirst("Length", line)[1]+1))
+            bus1 = strip(chop(line, head=findfirst("Bus1=", line)[end], tail=N-findfirst("Bus2", line)[1]+1))
+            bus2 = strip(chop(line, head=findfirst("Bus2=", line)[end], tail=N-findfirst("LineCode", line)[1]+1))
+            LineCode = strip(chop(line, head=findfirst("LineCode=", line)[end], tail=N-findfirst("Length", line)[1]+1))
+            if contains(line, "units")
+                LineLength = strip(chop(line, head=findfirst("Length=", line)[end], tail=N-findfirst("units", line)[1]+1))
+            else
                 LineLength = strip(chop(line, head=findfirst("Length=", line)[end], tail=0))
-                b1 = chop(bus1, tail=length(bus1)-findfirst(".", bus1)[1]+1)
-                b2 = chop(bus2, tail=length(bus2)-findfirst(".", bus2)[1]+1)
-                push!(edges, (b1, b2))
-                push!(linecodes, convert(String, LineCode))
-                push!(linelengths, parse(Float64, LineLength))
             end
+            b1 = chop(bus1, tail=length(bus1)-findfirst(".", bus1)[1]+1)
+            b2 = chop(bus2, tail=length(bus2)-findfirst(".", bus2)[1]+1)
+            push!(edges, (b1, b2))
+            push!(linecodes, convert(String, LineCode))
+            push!(linelengths, parse(Float64, LineLength))
         end
     end
     return edges, linecodes, linelengths
