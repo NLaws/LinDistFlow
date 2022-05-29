@@ -1,6 +1,6 @@
 
 # Single Phase LinDistFlow
-Baran, M. E., & Wu, F. F. (1989). Network reconfiguration in distribution systems for loss reduction and load balancing. IEEE Power Engineering Review, 9(4), 101-102.
+Baran, Mesut E., and Felix F. Wu. "Optimal capacitor placement on radial distribution systems." IEEE Transactions on power Delivery 4.1 (1989): 725-734.
 Chicago	
 ```math
 \begin{aligned}
@@ -12,3 +12,4 @@ w_j = w_i - 2 r_{ij} P_{ij} - 2 x_{ij} Q_{ij} \ \forall j \in \mathcal{N}^+ \\
 ```
 
 # Three Phase LinDistFlow
+Arnold, Daniel B., et al. "Optimal dispatch of reactive power for voltage regulation and balancing in unbalanced distribution systems." 2016 IEEE Power and Energy Society General Meeting (PESGM). IEEE, 2016.
