@@ -1,6 +1,9 @@
 """
     function i_to_j(j::String, p::Inputs)
 find all busses upstream of bus j
+
+!!! note
+    In a radial network this function should return an Array with length of 1.
 """
 function i_to_j(j::String, p::Inputs)
     convert(Array{String, 1}, map(x->x[1], filter(t->t[2]==j, p.edges)))
