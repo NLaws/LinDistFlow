@@ -12,5 +12,5 @@ makedocs(
     ],
 )
 deploydocs(
-    repo = "github.com/nlaws/LinDistFlow.git",
+    repo = "github.com/NLaws/LinDistFlow.git",
 )
