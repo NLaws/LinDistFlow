@@ -7,7 +7,7 @@ See `test/runtests.jl` for example usage. Currently set up to parse OpenDSS file
 
 For more information please see the documentation:
 <!-- [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://nlaws.github.io/LinDistFlow.jl/stable) -->
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://nlaws.github.io/LinDistFlow.jl/dev)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://nlaws.github.io/LinDistFlow/dev)
 
 ### References
 [1] Baran, M. E., & Wu, F. F. (1989). Network reconfiguration in distribution systems for loss reduction and load balancing. IEEE Power Engineering Review, 9(4), 101-102.
