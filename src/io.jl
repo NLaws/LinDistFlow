@@ -66,3 +66,31 @@ function dss_dict_to_arrays(d::Dict)
 
     return edges, linecodes, linelengths, d["linecode"], phases
 end
+
+
+"""
+
+"""
+function dss_loads(d::Dict)
+    P, Q = Dict{String, Dict{Int, Array{Real}}}(), Dict{String, Dict{Int, Array{Real}}}()
+    for v in values(d["load"])
+        bus = chop(v["bus1"], tail=length(v["bus1"])-findfirst('.', v["bus1"])+1)
+        phases = collect(parse(Int,ph) for ph in split(v["bus1"][findfirst('.', v["bus1"])+1:end], "."))
+        if !(bus in keys(P))
+            P[bus] = Dict{Int, Array{Real}}()
+            Q[bus] = Dict{Int, Array{Real}}()
+        end
+        if v["phases"] == 1
+            P[bus][phases[1]] = [v["kw"] * 1000]  # TODO handle vectors? does the parse_dss handle redirects to txt files for loads?
+            Q[bus][phases[1]] = [v["kvar"] * 1000]
+        else  # split the load evenly across phases
+            p = v["kw"] / length(phases) * 1000
+            q = v["kvar"] / length(phases) * 1000
+            for phs in phases
+                P[bus][phs] = [p]
+                Q[bus][phs] = [q]
+            end
+        end
+    end
+    return P, Q
+end

@@ -8,8 +8,8 @@ mutable struct Inputs{T<:Phases} <: AbstractInputs
     busses::Array{String}
     phases::Vector{Vector}
     substation_bus::String
-    Pload::Dict{String, AbstractArray{Real, 1}}
-    Qload::Dict{String, AbstractArray{Real, 1}}
+    Pload::Dict{String, Any}
+    Qload::Dict{String, Any}
     Sbase::Real
     Vbase::Real
     Ibase::Real
@@ -28,6 +28,7 @@ mutable struct Inputs{T<:Phases} <: AbstractInputs
     P_lo_bound::Float64
     Q_lo_bound::Float64
 end
+# TODO line flow limits
 
 
 """
@@ -36,8 +37,6 @@ Lowest level Inputs constructor (the only one that returns the Inputs struct).
 
 !!! note
     The real and reactive loads provided are normalized using `Sbase`.
-
-TODO ? nphases input
 """
 function Inputs(
         edges::Array{Tuple}, 
@@ -63,7 +62,7 @@ function Inputs(
     )
     Ibase = Sbase / (Vbase * sqrt(3))
     # Ibase^2 should be used to recover amperage from lᵢⱼ ?
-    Zbase = Vbase / (Ibase * sqrt(3))
+    Zbase = Vbase^2 / Sbase
     @info "Zbase: ", Zbase
     busses = String[]
     for t in edges
@@ -83,8 +82,8 @@ function Inputs(
             busses,
             phases,
             substation_bus,
-            Dict(k => v/Sbase for (k,v) in Pload),
-            Dict(k => v/Sbase for (k,v) in Qload),
+            Pload,
+            Qload,
             Sbase,
             Vbase,
             Ibase,
@@ -111,8 +110,8 @@ function Inputs(
             busses,
             phases,
             substation_bus,
-            Dict(k => v/Sbase for (k,v) in Pload),
-            Dict(k => v/Sbase for (k,v) in Qload),
+            Pload,
+            Qload,
             Sbase,
             Vbase,
             Ibase,
@@ -155,13 +154,14 @@ Inputs(
     Q_lo_bound,
     )
 
-Inputs constructor
+Inputs constructor that parses a openDSS file for the network. If `Pload` and `Qload` are not provided
+then the loads are also parsed from the openDSS file.
 """
 function Inputs(
         dssfilepath::String, 
         substation_bus::String;
-        Pload::AbstractDict, 
-        Qload::AbstractDict, 
+        Pload::AbstractDict=Dict(), 
+        Qload::AbstractDict=Dict(), 
         Sbase=1, 
         Vbase=1, 
         v0, 
@@ -177,6 +177,10 @@ function Inputs(
     )
     d = parse_dss(dssfilepath)
     edges, linecodes, linelengths, linecodes_dict, phases = dss_dict_to_arrays(d)
+
+    if isempty(Pload) && isempty(Qload)
+        Pload, Qload = dss_loads(d)
+    end
 
     Inputs(
         edges,
