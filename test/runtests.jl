@@ -61,10 +61,12 @@ end
     );
     @test typeof(p) == LinDistFlow.Inputs{LinDistFlow.ThreePhase}
 
-    m = Model(Gurobi.Optimizer)
+    m = Model(HiGHS.Optimizer)
     build_ldf!(m, p)
 
     # can add objective here
     optimize!(m)
     @test termination_status(m) == MOI.OPTIMAL
+
+    vsqrd = get_bus_values("vsqrd", m, p)
 end
