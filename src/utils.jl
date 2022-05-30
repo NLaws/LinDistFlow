@@ -127,6 +127,7 @@ end
 
 
 """
+    MPij(i::String, j::String, p::Inputs{ThreePhase})
 
 Real power coefficients for 3 phase voltage drop from node i to j
 """
@@ -134,6 +135,25 @@ function MPij(i::String, j::String, p::Inputs{ThreePhase})
     M = zeros((3,3))
     r = rij(i,j,p)
     x = xij(i,j,p)
+    M[1,:] = [-2r[1,1]             r[1,2]-sqrt(3)x[1,2] r[1,3]+sqrt(3)x[1,3]]
+    M[2,:] = [r[2,1]+sqrt(3)x[2,1] -2r[2,2]             r[2,3]-sqrt(3)x[2,3]]
+    M[3,:] = [r[3,1]-sqrt(3)x[3,1] r[3,2]+sqrt(3)x[3,2] -2r[3,3]            ]
+    return M
+end
+
+
+"""
+    MQij(i::String, j::String, p::Inputs{ThreePhase})
+
+Reactive power coefficients for 3 phase voltage drop from node i to j
+"""
+function MQij(i::String, j::String, p::Inputs{ThreePhase})
+    M = zeros((3,3))
+    r = rij(i,j,p)
+    x = xij(i,j,p)
+    M[1,:] = [-2x[1,1]             x[1,2]+sqrt(3)r[1,2] x[1,3]-sqrt(3)r[1,3]]
+    M[2,:] = [x[2,1]-sqrt(3)r[2,1] -2x[2,2]             x[2,3]+sqrt(3)r[2,3]]
+    M[3,:] = [x[3,1]+sqrt(3)r[3,1] x[3,2]-sqrt(3)r[3,2] -2x[3,3]            ]
     return M
 end
 
