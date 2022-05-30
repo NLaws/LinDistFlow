@@ -30,7 +30,22 @@ end
 function rij(i::String, j::String, p::Inputs{ThreePhase})
     linecode = get_ijlinecode(i, j, p)
     linelength = get_ijlinelength(i, j, p)
-    rmatrix = p.Zdict[linecode]["rmatrix"] * linelength / p.Zbase
+    raw_rmatrix = p.Zdict[linecode]["rmatrix"] * linelength / p.Zbase
+    phases = get_ijphases(i, j, p)
+    if length(phases) == 3
+        return raw_rmatrix
+    end
+    rmatrix = zeros(3,3)
+    if length(phases) == 1
+        rmatrix[phases[1], phases[1]] = raw_rmatrix[1]
+        return rmatrix
+    end
+    # else have to handle two phases, which could be [1,2], [1,3], or [2,3]
+    phs1, phs2 = phases
+    rmatrix[phs1,phs1] = raw_rmatrix[1,1]
+    rmatrix[phs2,phs2] = raw_rmatrix[2,2]
+    rmatrix[phs1,phs2] = raw_rmatrix[1,2]
+    rmatrix[phs2,phs1] = raw_rmatrix[2,1]
     return rmatrix
 end
 
@@ -46,37 +61,58 @@ end
 function xij(i::String, j::String, p::Inputs{ThreePhase})
     linecode = get_ijlinecode(i, j, p)
     linelength = get_ijlinelength(i, j, p)
-    xmatrix = p.Zdict[linecode]["xmatrix"] * linelength / p.Zbase
+    raw_xmatrix = p.Zdict[linecode]["xmatrix"] * linelength / p.Zbase
+    phases = get_ijphases(i, j, p)
+    if length(phases) == 3
+        return raw_xmatrix
+    end
+    xmatrix = zeros(3,3)
+    if length(phases) == 1
+        xmatrix[phases[1], phases[1]] = raw_xmatrix[1]
+        return xmatrix
+    end
+    # else have to handle two phases, which could be [1,2], [1,3], or [2,3]
+    phs1, phs2 = phases
+    xmatrix[phs1,phs1] = raw_xmatrix[1,1]
+    xmatrix[phs2,phs2] = raw_xmatrix[2,2]
+    xmatrix[phs1,phs2] = raw_xmatrix[1,2]
+    xmatrix[phs2,phs1] = raw_xmatrix[2,1]
     return xmatrix
 end
 
 
 function get_ijlinelength(i::String, j::String, p::Inputs)
-    ij_idxs = get_ij_idxs(i, j, p)
-    return p.linelengths[ij_idxs[1]]
+    ij_idx = get_ij_idx(i, j, p)
+    return p.linelengths[ij_idx]
 end
 
 
 function get_ijlinecode(i::String, j::String, p::Inputs)
-    ij_idxs = get_ij_idxs(i, j, p)
-    return p.linecodes[ij_idxs[1]]
+    ij_idx = get_ij_idx(i, j, p)
+    return p.linecodes[ij_idx]
 end
 
 
 function get_ijedge(i::String, j::String, p::Inputs)
-    ij_idxs = get_ij_idxs(i, j, p)
-    return p.edges[ij_idxs[1]]
+    ij_idx = get_ij_idx(i, j, p)
+    return p.edges[ij_idx]
 end
 
 
-function get_ij_idxs(i::String, j::String, p::Inputs)
+function get_ijphases(i::String, j::String, p::Inputs{ThreePhase})
+    ij_idx = get_ij_idx(i, j, p)
+    return p.phases[ij_idx]
+end
+
+
+function get_ij_idx(i::String, j::String, p::Inputs)
     ij_idxs = findall(t->(t[1]==i && t[2]==j), p.edges)
     if length(ij_idxs) > 1
         error("found more than one edge for i=$i and j=$j")
     elseif length(ij_idxs) == 0
         error("found no matching edges for i=$i and j=$j")
     else
-        return ij_idxs
+        return ij_idxs[1]
     end
 end
 
