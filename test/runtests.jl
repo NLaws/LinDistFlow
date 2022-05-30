@@ -42,6 +42,19 @@ Random.seed!(42)
 end
 
 
-@testset "multiphase openDSS" begin
+@testset "three phase openDSS" begin
+    p = Inputs(
+        "data/13bus/IEEE13Nodeckt.dss", 
+        "650";
+        Pload=Dict(),  # TODO if empty load dicts try to extract from openDSS
+        Qload=Dict(),
+        Sbase=1, # get Sbase, Vbase from openDSS ?
+        Vbase=1, 
+        v0 = 1.00,
+        v_uplim = 1.05,
+        v_lolim = 0.95,
+        Ntimesteps = 1
+    )
+    @test typeof(p) == LinDistFlow.Inputs{LinDistFlow.ThreePhase}
     
 end

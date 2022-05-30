@@ -19,7 +19,7 @@ function j_to_k(j::String, p::Inputs)
 end
 
 
-function rij(i::String, j::String, p::Inputs)
+function rij(i::String, j::String, p::Inputs{SinglePhase})
     linecode = get_ijlinecode(i, j, p)
     linelength = get_ijlinelength(i, j, p)
     rmatrix = p.Zdict[linecode]["rmatrix"] * linelength / p.Zbase
@@ -27,11 +27,27 @@ function rij(i::String, j::String, p::Inputs)
 end
 
 
-function xij(i::String, j::String, p::Inputs)
+function rij(i::String, j::String, p::Inputs{ThreePhase})
+    linecode = get_ijlinecode(i, j, p)
+    linelength = get_ijlinelength(i, j, p)
+    rmatrix = p.Zdict[linecode]["rmatrix"] * linelength / p.Zbase
+    return rmatrix
+end
+
+
+function xij(i::String, j::String, p::Inputs{SinglePhase})
     linecode = get_ijlinecode(i, j, p)
     linelength = get_ijlinelength(i, j, p)
     xmatrix = p.Zdict[linecode]["xmatrix"] * linelength / p.Zbase
     return xmatrix[1]
+end
+
+
+function xij(i::String, j::String, p::Inputs{ThreePhase})
+    linecode = get_ijlinecode(i, j, p)
+    linelength = get_ijlinelength(i, j, p)
+    xmatrix = p.Zdict[linecode]["xmatrix"] * linelength / p.Zbase
+    return xmatrix
 end
 
 
@@ -107,6 +123,18 @@ function get_constraints_by_variable_name(m, v::String)
         append!(ac, all_constraints(m, tup[1], tup[2]))
     end
     filter( cr -> occursin(v, string(cr)), ac )
+end
+
+
+"""
+
+Real power coefficients for 3 phase voltage drop from node i to j
+"""
+function MPij(i::String, j::String, p::Inputs{ThreePhase})
+    M = zeros((3,3))
+    r = rij(i,j,p)
+    x = xij(i,j,p)
+    return M
 end
 
 

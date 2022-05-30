@@ -51,6 +51,9 @@ function dss_dict_to_arrays(d::Dict)
     linelengths = Float64[]
 
     for v in values(d["line"])
+        if "switch" in keys(v) && v["switch"] == true
+            continue
+        end
         b1 = chop(v["bus1"], tail=length(v["bus1"])-findfirst(".", v["bus1"])[1]+1)
         b2 = chop(v["bus2"], tail=length(v["bus2"])-findfirst(".", v["bus2"])[1]+1)
         push!(edges, (b1, b2))

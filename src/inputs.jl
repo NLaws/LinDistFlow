@@ -1,7 +1,7 @@
 """
-mutable struct Inputs <: SinglePhaseInputs
+mutable struct Inputs{T<:Phase} <: AbstractInputs
 """
-mutable struct Inputs <: SinglePhaseInputs
+mutable struct Inputs{T<:Phases} <: AbstractInputs
     edges::Array{Tuple, 1}
     linecodes::Array{String, 1}
     linelengths::Array{Float64, 1}
@@ -29,6 +29,15 @@ mutable struct Inputs <: SinglePhaseInputs
 end
 
 
+"""
+
+Lowest level Inputs constructor (the only one that returns the Inputs struct). 
+
+!!! note
+    The real and reactive loads provided are normalized using `Sbase`.
+
+TODO ? nphases input
+"""
 function Inputs(
         edges::Array{Tuple}, 
         linecodes::Array{String}, 
@@ -64,33 +73,63 @@ function Inputs(
     if v_lolim < 0 @error("lower voltage limit v_lolim cannot be less than zero") end
     if v_uplim < 0 @error("upper voltage limit v_uplim cannot be less than zero") end
 
-    Inputs(
-        edges,
-        linecodes,
-        linelengths,
-        busses,
-        substation_bus,
-        Dict(k => v/Sbase for (k,v) in Pload),
-        Dict(k => v/Sbase for (k,v) in Qload),
-        Sbase,
-        Vbase,
-        Ibase,
-        Zdict,
-        v0,
-        v_lolim, 
-        v_uplim,
-        Zbase,
-        Ntimesteps,
-        Nequality_cons,
-        Nlte_cons,
-        0.1,  # power factor
-        length(busses),  # Nnodes
-        P_up_bound,
-        Q_up_bound,
-        P_lo_bound,
-        Q_lo_bound,
-    )
+    if any(get(v, "nphases", 1) == 3 for v in values(Zdict))
+        Inputs{ThreePhase}(
+            edges,
+            linecodes,
+            linelengths,
+            busses,
+            substation_bus,
+            Dict(k => v/Sbase for (k,v) in Pload),
+            Dict(k => v/Sbase for (k,v) in Qload),
+            Sbase,
+            Vbase,
+            Ibase,
+            Zdict,
+            v0,
+            v_lolim, 
+            v_uplim,
+            Zbase,
+            Ntimesteps,
+            Nequality_cons,
+            Nlte_cons,
+            0.1,  # power factor
+            length(busses),  # Nnodes
+            P_up_bound,
+            Q_up_bound,
+            P_lo_bound,
+            Q_lo_bound,
+        )
+    else
+        Inputs{SinglePhase}(
+            edges,
+            linecodes,
+            linelengths,
+            busses,
+            substation_bus,
+            Dict(k => v/Sbase for (k,v) in Pload),
+            Dict(k => v/Sbase for (k,v) in Qload),
+            Sbase,
+            Vbase,
+            Ibase,
+            Zdict,
+            v0,
+            v_lolim, 
+            v_uplim,
+            Zbase,
+            Ntimesteps,
+            Nequality_cons,
+            Nlte_cons,
+            0.1,  # power factor
+            length(busses),  # Nnodes
+            P_up_bound,
+            Q_up_bound,
+            P_lo_bound,
+            Q_lo_bound,
+        )
+    end
 end
+
 
 """
 Inputs(
