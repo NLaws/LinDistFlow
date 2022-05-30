@@ -6,6 +6,7 @@ mutable struct Inputs{T<:Phases} <: AbstractInputs
     linecodes::Array{String, 1}
     linelengths::Array{Float64, 1}
     busses::Array{String}
+    phases::Vector{Vector}
     substation_bus::String
     Pload::Dict{String, AbstractArray{Real, 1}}
     Qload::Dict{String, AbstractArray{Real, 1}}
@@ -42,6 +43,7 @@ function Inputs(
         edges::Array{Tuple}, 
         linecodes::Array{String}, 
         linelengths::Array{Float64}, 
+        phases::Vector{Vector},
         substation_bus::String;
         Pload, 
         Qload, 
@@ -79,6 +81,7 @@ function Inputs(
             linecodes,
             linelengths,
             busses,
+            phases,
             substation_bus,
             Dict(k => v/Sbase for (k,v) in Pload),
             Dict(k => v/Sbase for (k,v) in Qload),
@@ -106,6 +109,7 @@ function Inputs(
             linecodes,
             linelengths,
             busses,
+            phases,
             substation_bus,
             Dict(k => v/Sbase for (k,v) in Pload),
             Dict(k => v/Sbase for (k,v) in Qload),
@@ -172,12 +176,13 @@ function Inputs(
         Q_lo_bound=-1e4,
     )
     d = parse_dss(dssfilepath)
-    edges, linecodes, linelengths, linecodes_dict = dss_dict_to_arrays(d)
+    edges, linecodes, linelengths, linecodes_dict, phases = dss_dict_to_arrays(d)
 
     Inputs(
         edges,
         linecodes,
         linelengths,
+        phases,
         substation_bus;
         Pload=Pload, 
         Qload=Qload,

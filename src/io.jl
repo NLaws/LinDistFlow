@@ -45,8 +45,8 @@ Parse the dict from PowerModelsDistribution.parse_dss into values needed for Lin
 """
 function dss_dict_to_arrays(d::Dict)
     # TODO allocate empty arrays with number of lines
-    # TODO ignore swithces?
     edges = Tuple[]
+    phases = Vector[]
     linecodes = String[]
     linelengths = Float64[]
 
@@ -54,12 +54,15 @@ function dss_dict_to_arrays(d::Dict)
         if "switch" in keys(v) && v["switch"] == true
             continue
         end
-        b1 = chop(v["bus1"], tail=length(v["bus1"])-findfirst(".", v["bus1"])[1]+1)
-        b2 = chop(v["bus2"], tail=length(v["bus2"])-findfirst(".", v["bus2"])[1]+1)
+        b1 = chop(v["bus1"], tail=length(v["bus1"])-findfirst('.', v["bus1"])+1)
+        b2 = chop(v["bus2"], tail=length(v["bus2"])-findfirst('.', v["bus2"])+1)
+        phs = sort!(collect(parse(Int,ph) for ph in split(v["bus1"][findfirst('.', v["bus1"])+1:end], ".")))
+        # TODO should we sort the phases? IEEE13 has a line with Bus1=632.3.2 Bus2=645.3.2 -> does this imply that the rmatrix has phase 3 values in the first row?
         push!(edges, (b1, b2))
         push!(linecodes, v["linecode"])
         push!(linelengths, v["length"])
+        push!(phases, phs)
     end
 
-    return edges, linecodes, linelengths, d["linecode"]
+    return edges, linecodes, linelengths, d["linecode"], phases
 end
