@@ -153,6 +153,16 @@ function get_bus_values(var_prefix::String, m::JuMP.AbstractModel, p::Inputs)
 end
 
 
+function get_bus_values(var_prefix::String, m::JuMP.AbstractModel, p::Inputs{ThreePhase})
+    var_refs = collect(v for v in all_variables(m) if startswith(string(v), var_prefix))
+    d = Dict{String, Real}()
+    for vr in var_refs
+        d[string(vr)] = value(vr)
+    end
+    return d
+end
+
+
 function get_constraints_by_variable_name(m, v::String)
     ac = ConstraintRef[]
     for tup in list_of_constraint_types(m)
