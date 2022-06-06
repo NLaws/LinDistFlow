@@ -81,7 +81,7 @@ function dss_loads(d::Dict)
             Q[bus] = Dict{Int, Array{Real}}()
         end
         if v["phases"] == 1
-            P[bus][phases[1]] = [v["kw"] * 1000]  # TODO handle vectors? does the parse_dss handle redirects to txt files for loads?
+            P[bus][phases[1]] = [v["kw"] * 1000]  # TODO handle vectors. Does the parse_dss handle redirects to txt files for loads?
             Q[bus][phases[1]] = [v["kvar"] * 1000]
         else  # split the load evenly across phases
             p = v["kw"] / length(phases) * 1000

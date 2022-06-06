@@ -59,14 +59,17 @@ end
         P_lo_bound=-1e4,
         Q_lo_bound=-1e4,
     );
+    # TODO https://github.com/lanl-ansi/PowerModelsDistribution.jl/blob/926b5acb6bf13231191500d404008cda580f240d/src/io/dss/dss_parse.jl#L807 fails in Ubuntu Actions tests
     @test typeof(p) == LinDistFlow.Inputs{LinDistFlow.ThreePhase}
 
     m = Model(HiGHS.Optimizer)
     build_ldf!(m, p)
 
-    # can add objective here
+    @objective(m, Min, sum(m[:Pⱼ][p.substation_bus, phs, t] + m[:Qⱼ][p.substation_bus, phs, t] for phs in 1:3, t in 1:p.Ntimesteps))
     optimize!(m)
     @test termination_status(m) == MOI.OPTIMAL
 
     vsqrd = get_bus_values("vsqrd", m, p)
+    vmag = Dict(k => sqrt(v) for (k,v) in vsqrd)
+    # TODO vmag tests? or implement var control a-la Arnold 2016; could compare to PowerModelsDistribution
 end
