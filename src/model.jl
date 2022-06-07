@@ -34,12 +34,8 @@ end
 
 
 function add_variables(m, p::Inputs{ThreePhase})
-    # TODO replace 1:3 with phs lookup by node j or p.busses
-    #=
-    d=Dict(k=>v for (k,v) in zip(p.busses, p.phases))
-    @variable(m, z[b in keys(d), d[b]])
-    =#
     receiving_busses = collect(e[2] for e in p.edges)
+    phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
     d = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
     d[p.substation_bus] = [1,2,3]
     T = 1:p.Ntimesteps
@@ -47,6 +43,14 @@ function add_variables(m, p::Inputs{ThreePhase})
     @variables m begin
         p.P_lo_bound <= Pⱼ[b in keys(d), d[b], T] <= p.P_up_bound
         p.Q_lo_bound <= Qⱼ[b in keys(d), d[b], T] <= p.Q_up_bound
+    end
+
+    m[:Qvar] = Dict()
+    for b in p.Qresource_nodes
+        m[:Qvar][b] = Dict()
+        for phs in phases_into_bus[b]
+            m[:Qvar][b][phs] = @variable(m, [T], lower_bound=p.Q_lo_bound, upper_bound=p.Q_up_bound)
+        end
     end
 
     # voltage squared
@@ -233,8 +237,8 @@ function constrain_KVL(m, p::Inputs{ThreePhase})
             for phs in phases_into_bus[j]
                 @constraint(m, [t in 1:p.Ntimesteps],
                     w[j,phs,t] == w[i,phs,t]
-                        - sum(MP[phs,k] * P[i_j,k,t] for k=phases_into_bus[j])
-                        - sum(MQ[phs,k] * Q[i_j,k,t] for k=phases_into_bus[j])
+                        + sum(MP[phs,k] * P[i_j,k,t] for k=phases_into_bus[j])
+                        + sum(MQ[phs,k] * Q[i_j,k,t] for k=phases_into_bus[j])
                 )
             end
         end
@@ -289,6 +293,8 @@ end
 function constrain_loads(m, p::Inputs{ThreePhase})
     Pⱼ = m[:Pⱼ]
     Qⱼ = m[:Qⱼ]
+    a0 = 0.85
+    a1 = 0.15
     
     receiving_busses = collect(e[2] for e in p.edges)
     phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
@@ -299,7 +305,7 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
                     @constraint(m, [t in 1:p.Ntimesteps],
-                        Pⱼ[j,phs,t] == -p.Pload[j][phs][t] / p.Sbase # need (a0 + a1 * vsqrd) here? 
+                        Pⱼ[j,phs,t] == -p.Pload[j][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][j,phs,t])
                     )
                 end
             end
@@ -317,13 +323,13 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                 )
             end
         end  # real loads
-        if j in keys(p.Qload)
+        if j in keys(p.Qload) && !(j in p.Qresource_nodes)
             for phs in keys(p.Qload[j])
                 if !(phs in phases_into_bus[j])
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
                     @constraint(m, [t in 1:p.Ntimesteps],
-                        Qⱼ[j,phs,t] == -p.Qload[j][phs][t] / p.Sbase # need (a0 + a1 * vsqrd) here? 
+                        Qⱼ[j,phs,t] == -p.Qload[j][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][j,phs,t])
                     )
                 end
             end
@@ -332,6 +338,30 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                     Qⱼ[j,phs,t] == 0
                 )
             end
+
+        elseif j in keys(p.Qload) && j in p.Qresource_nodes
+            for phs in keys(p.Qload[j])
+                if !(phs in phases_into_bus[j])
+                    @warn "Load and Qresource provided for bus $j, phase $phs but there are no lines into that point."
+                else
+                    @constraint(m, [t in 1:p.Ntimesteps],
+                        Qⱼ[j,phs,t] == -p.Qload[j][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][j,phs,t]) + m[:Qvar][j][phs][t] / p.Sbase  # need (a0 + a1 * vsqrd) here? 
+                    )
+                end
+            end
+            for phs in setdiff(phases_into_bus[j], keys(p.Qload[j]))
+                @constraint(m, [t in 1:p.Ntimesteps],
+                    Qⱼ[j,phs,t] == m[:Qvar][j][phs][t] / p.Sbase
+                )
+            end
+
+        elseif j in p.Qresource_nodes
+            for phs in phases_into_bus[j]
+                @constraint(m, [t in 1:p.Ntimesteps],
+                    Qⱼ[j,phs,t] == m[:Qvar][j][phs][t] / p.Sbase
+                )
+            end
+
         elseif j != p.substation_bus
             for phs in phases_into_bus[j]
                 @constraint(m, [t in 1:p.Ntimesteps],

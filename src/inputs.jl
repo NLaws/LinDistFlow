@@ -27,6 +27,7 @@ mutable struct Inputs{T<:Phases} <: AbstractInputs
     Q_up_bound::Float64
     P_lo_bound::Float64
     Q_lo_bound::Float64
+    Qresource_nodes::Vector{String}
 end
 # TODO line flow limits
 
@@ -101,6 +102,7 @@ function Inputs(
             Q_up_bound,
             P_lo_bound,
             Q_lo_bound,
+            String[]  # Qresource_nodes
         )
     else
         Inputs{SinglePhase}(
@@ -129,6 +131,7 @@ function Inputs(
             Q_up_bound,
             P_lo_bound,
             Q_lo_bound,
+            String[]  # Qresource_nodes
         )
     end
 end
