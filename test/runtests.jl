@@ -57,7 +57,7 @@ end
     p = Inputs(
         "data/13bus/IEEE13Nodeckt.dss", 
         "rg60";
-        Pload=Dict(),  # TODO if empty load dicts try to extract from openDSS
+        Pload=Dict(),
         Qload=Dict(),
         Sbase=500000, # get Sbase, Vbase from openDSS ?
         Vbase=4160, 
@@ -81,12 +81,6 @@ end
     p.Qload["633"] = p.Qload["634"]  # "ignoring the transformer between 633 and 644
     delete!(p.Pload, "634")
     delete!(p.Qload, "634")
-    # for b in keys(p.Pload), phs in keys(p.Pload[b])
-    #     p.Pload[b][phs] /= 10
-    # end
-    # for b in keys(p.Qload), phs in keys(p.Qload[b])
-    #     p.Qload[b][phs] /= 10
-    # end
 
     @test typeof(p) == LinDistFlow.Inputs{LinDistFlow.ThreePhase}
 
@@ -104,8 +98,6 @@ end
         )
     )
 
-
-    # @objective(m, Min, sum(m[:Pⱼ][p.substation_bus, phs, t] + m[:Qⱼ][p.substation_bus, phs, t] for phs in 1:3, t in 1:p.Ntimesteps))
     optimize!(m)
     @test termination_status(m) == MOI.LOCALLY_SOLVED
 
@@ -130,5 +122,4 @@ end
     vsqrd = get_bus_values("vsqrd", m, p)
     vmag = Dict(k => sqrt(v) for (k,v) in vsqrd)
 
-    # TODO vmag tests? or implement var control a-la Arnold 2016; could compare to PowerModelsDistribution
 end
