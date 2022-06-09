@@ -90,7 +90,7 @@ end
     phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))  # TODO add this to Inputs
     
     @objective(m, Min,
-        0.5 * sum( m[:Qvar][b][phs][1]^2 for b in p.Qresource_nodes, phs in phases_into_bus[b]) +
+        0.5* sum( (m[:Qvar][b][phs][1] / p.Sbase)^2 for b in p.Qresource_nodes, phs in phases_into_bus[b]) +
         sum(
             (m[:vsqrd][b,phs1,1] - m[:vsqrd][b,phs2,1])^2
             for b in setdiff(p.busses, [p.substation_bus]), 
