@@ -44,15 +44,7 @@ function add_variables(m, p::Inputs{ThreePhase})
         p.P_lo_bound <= Pⱼ[b in keys(d), d[b], T] <= p.P_up_bound
         p.Q_lo_bound <= Qⱼ[b in keys(d), d[b], T] <= p.Q_up_bound
     end
-
-    m[:Qvar] = Dict()
-    for b in p.Qresource_nodes
-        m[:Qvar][b] = Dict()
-        for phs in phases_into_bus[b]
-            m[:Qvar][b][phs] = @variable(m, [T], lower_bound=p.Q_lo_bound, upper_bound=p.Q_up_bound)
-        end
-    end
-
+    
     # voltage squared
     @variable(m, p.v_lolim^2 <= vsqrd[b in keys(d), d[b], T] <= p.v_uplim^2 ) 
     
@@ -328,52 +320,29 @@ function constrain_loads(m, p::Inputs{ThreePhase})
         end  # real loads
 
         m[:cons][:injection_equalities][j][:Q] = Dict()
-        if j in keys(p.Qload) && !(j in p.Qresource_nodes)
+        if j in keys(p.Qload)
             for phs in keys(p.Qload[j])
                 if !(phs in phases_into_bus[j])
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
-                    @constraint(m, [t in 1:p.Ntimesteps],
+                    m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                         Qⱼ[j,phs,t] == -p.Qload[j][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][j,phs,t])
                     )
                 end
             end
             for phs in setdiff(phases_into_bus[j], keys(p.Qload[j]))
-                @constraint(m, [t in 1:p.Ntimesteps],
+                m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                     Qⱼ[j,phs,t] == 0
-                )
-            end
-
-        elseif j in keys(p.Qload) && j in p.Qresource_nodes
-            for phs in keys(p.Qload[j])
-                if !(phs in phases_into_bus[j])
-                    @warn "Load and Qresource provided for bus $j, phase $phs but there are no lines into that point."
-                else
-                    @constraint(m, [t in 1:p.Ntimesteps],
-                        Qⱼ[j,phs,t] == -p.Qload[j][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][j,phs,t]) + m[:Qvar][j][phs][t] / p.Sbase  # need (a0 + a1 * vsqrd) here? 
-                    )
-                end
-            end
-            for phs in setdiff(phases_into_bus[j], keys(p.Qload[j]))
-                @constraint(m, [t in 1:p.Ntimesteps],
-                    Qⱼ[j,phs,t] == m[:Qvar][j][phs][t] / p.Sbase
-                )
-            end
-
-        elseif j in p.Qresource_nodes
-            for phs in phases_into_bus[j]
-                @constraint(m, [t in 1:p.Ntimesteps],
-                    Qⱼ[j,phs,t] == m[:Qvar][j][phs][t] / p.Sbase
                 )
             end
 
         elseif j != p.substation_bus
             for phs in phases_into_bus[j]
-                @constraint(m, [t in 1:p.Ntimesteps],
+                m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                     Qⱼ[j,phs,t] == 0
                 )
             end
-        end
+        end  # reactive loads
     end
 end
 

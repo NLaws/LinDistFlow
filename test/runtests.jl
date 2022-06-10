@@ -49,6 +49,7 @@ end
     #=
     Validating against Arnold 2016 results, which requires:
     - dividing loads by 10? (according to values in Table I)
+    - ignoring 633-634 trfx (copied line 632-633 to 633-634)
     - increasing impedances by 1.25 (Section IV, paragraph 3)
     - TODO? use equ.s (3) & (4) for voltage-dependent loads
     - allowing decisions for reactive power injection at busses 632, 675, 680, and 684
@@ -70,27 +71,56 @@ end
         P_lo_bound=-1e5,
         Q_lo_bound=-1e5,
     );
-    p.Qresource_nodes = ["632", "675", "680", "684"]
+
+    receiving_busses = collect(e[2] for e in p.edges)
+    phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))  # TODO add this to Inputs
+    Qresource_nodes = ["632", "675", "680", "684"]
+
     for linecode in keys(p.Zdict)
         p.Zdict[linecode]["rmatrix"] *= 1.25
         p.Zdict[linecode]["xmatrix"] *= 1.25
     end
     delete!(p.Pload, "670")
     delete!(p.Qload, "670")
-    p.Pload["633"] = p.Pload["634"]  # "ignoring the transformer between 633 and 644
-    p.Qload["633"] = p.Qload["634"]  # "ignoring the transformer between 633 and 644
-    delete!(p.Pload, "634")
-    delete!(p.Qload, "634")
+    # p.Pload["633"] = p.Pload["634"]  # "ignoring the transformer between 633 and 644
+    # p.Qload["633"] = p.Qload["634"]  # "ignoring the transformer between 633 and 644
+    # delete!(p.Pload, "634")
+    # delete!(p.Qload, "634")
 
     @test typeof(p) == LinDistFlow.Inputs{LinDistFlow.ThreePhase}
 
     m = Model(Ipopt.Optimizer)
     build_ldf!(m, p)
-    receiving_busses = collect(e[2] for e in p.edges)
-    phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))  # TODO add this to Inputs
+
+    a0 = 0.85
+    a1 = 0.15
+    # add the var resources 
+    m[:Qvar] = Dict()
+    for b in Qresource_nodes
+        m[:Qvar][b] = Dict()
+        for phs in phases_into_bus[b]
+            m[:Qvar][b][phs] = @variable(m, [1:p.Ntimesteps])
+            delete(m, m[:cons][:injection_equalities][b][:Q][phs])
+            if b in keys(p.Qload) && phs in keys(p.Qload[b])
+                m[:cons][:injection_equalities][b][:Q][phs] = 
+                @constraint(m, [t in 1:p.Ntimesteps],
+                    m[:Qⱼ][b,phs,t] == 
+                    -p.Qload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t]) + 
+                    m[:Qvar][b][phs][t] / p.Sbase
+                )
+            else
+                m[:cons][:injection_equalities][b][:Q][phs] = 
+                @constraint(m, [t in 1:p.Ntimesteps],
+                    m[:Qⱼ][b,phs,t] == 
+                    m[:Qvar][b][phs][t] / p.Sbase
+                )
+            end
+        end
+    end
+
     
     @objective(m, Min,
-        0.5* sum( (m[:Qvar][b][phs][1] / p.Sbase)^2 for b in p.Qresource_nodes, phs in phases_into_bus[b]) +
+        0.5* sum( (m[:Qvar][b][phs][1] / p.Sbase)^2 for b in Qresource_nodes, phs in phases_into_bus[b]) +
         sum(
             (m[:vsqrd][b,phs1,1] - m[:vsqrd][b,phs2,1])^2
             for b in setdiff(p.busses, [p.substation_bus]), 
@@ -98,11 +128,28 @@ end
         )
     )
 
+    # TODO looks like Arnold replaced the trfx 633-634 with a line (has 634>633 voltage on plots)
+    # TODO what did Arnold replace the switch with?
+
+    # @constraints(m, begin
+    #     m[:Qvar]["632"][1][1] == 0.0081*p.Sbase*10
+    #     m[:Qvar]["632"][2][1] == 0.0346*p.Sbase*10
+    #     m[:Qvar]["632"][3][1] == -0.0437*p.Sbase*10
+    #     m[:Qvar]["675"][1][1] == -0.005*p.Sbase*10
+    #     m[:Qvar]["675"][2][1] == -0.0522*p.Sbase*10
+    #     m[:Qvar]["675"][3][1] == 0.058*p.Sbase*10
+    #     m[:Qvar]["680"][1][1] == -0.003*p.Sbase*10
+    #     m[:Qvar]["680"][2][1] == -0.0011*p.Sbase*10
+    #     m[:Qvar]["680"][3][1] == 0.0038*p.Sbase*10
+    #     m[:Qvar]["684"][1][1] == 0.0003*p.Sbase*10
+    #     m[:Qvar]["684"][3][1] == 0.0389*p.Sbase*10
+    # end)
+
     optimize!(m)
     @test termination_status(m) == MOI.LOCALLY_SOLVED
 
     phsa,phsb,phsc = 0,0,0
-    for b in p.Qresource_nodes, phs in phases_into_bus[b], t in 1:1
+    for b in Qresource_nodes, phs in phases_into_bus[b], t in 1:1
         println(b, ".", phs, " ", round(value(m[:Qvar][b][phs][t])/p.Sbase, digits=4) )
         if phs == 1
             phsa += value(m[:Qvar][b][phs][t])/p.Sbase
@@ -116,6 +163,8 @@ end
     #=
     Not getting same values as Arnold for Qvar.
     Phase C has voltages at 0.95 in my solution but Arnold's lowest phase C voltages are near 0.97
+    so issue is relate to min'ing the cross phase voltage differences?
+    seems so: if remove control cost then get lowest voltage near 0.97
     (Phase C is the only phase that will violate 0.95 without Qvar)
     =#
 
