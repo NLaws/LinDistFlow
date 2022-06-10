@@ -295,33 +295,39 @@ function constrain_loads(m, p::Inputs{ThreePhase})
     Qⱼ = m[:Qⱼ]
     a0 = 0.85
     a1 = 0.15
+    m[:cons] = Dict()
+    m[:cons][:injection_equalities] = Dict()
     
     receiving_busses = collect(e[2] for e in p.edges)
     phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
     for j in p.busses
+        m[:cons][:injection_equalities][j] = Dict()
+        m[:cons][:injection_equalities][j][:P] = Dict()
         if j in keys(p.Pload)
             for phs in keys(p.Pload[j])
                 if !(phs in phases_into_bus[j])
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
-                    @constraint(m, [t in 1:p.Ntimesteps],
+                    m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                         Pⱼ[j,phs,t] == -p.Pload[j][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][j,phs,t])
                     )
                 end
             end
             
             for phs in setdiff(phases_into_bus[j], keys(p.Pload[j]))
-                @constraint(m, [t in 1:p.Ntimesteps],
+                m[:cons][:injection_equalities][j][:P][phs] = m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                     Pⱼ[j,phs,t] == 0
                 )
             end
         elseif j != p.substation_bus
             for phs in phases_into_bus[j]
-                @constraint(m, [t in 1:p.Ntimesteps],
+                m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                     Pⱼ[j,phs,t] == 0
                 )
             end
         end  # real loads
+
+        m[:cons][:injection_equalities][j][:Q] = Dict()
         if j in keys(p.Qload) && !(j in p.Qresource_nodes)
             for phs in keys(p.Qload[j])
                 if !(phs in phases_into_bus[j])
