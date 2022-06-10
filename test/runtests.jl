@@ -122,4 +122,36 @@ end
     vsqrd = get_bus_values("vsqrd", m, p)
     vmag = Dict(k => sqrt(v) for (k,v) in vsqrd)
 
+@testset "modify bus injections" begin
+    p = Inputs(
+        "data/13bus/IEEE13Nodeckt.dss", 
+        "rg60";
+        Pload=Dict(),
+        Qload=Dict(),
+        Sbase=500000,
+        Vbase=4160, 
+        v0 = 1.00,
+        v_uplim = 1.05,
+        v_lolim = 0.95,
+        Ntimesteps = 1,
+        P_up_bound=1e5,
+        Q_up_bound=1e5,
+        P_lo_bound=-1e5,
+        Q_lo_bound=-1e5,
+    );
+    m = Model(Ipopt.Optimizer)
+    build_ldf!(m, p)
+    # solve with zero load on bus 680
+    optimize!(m)
+    phs1substationload = value.(m[:Pⱼ])[p.substation_bus, 1, 1]
+
+
+    # bus 680 has three phases and no load in the IEEE13 model
+    delete(m, m[:cons][:injection_equalities]["680"][:P][1])
+    m[:cons][:injection_equalities]["680"][:P][1] = @constraint(m, [t in 1:p.Ntimesteps],
+        m[:Pⱼ]["680",1,t] == -1e3 / p.Sbase
+    )
+    optimize!(m)
+    @test phs1substationload < value.(m[:Pⱼ])[p.substation_bus, 1, 1]
+    
 end
