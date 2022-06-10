@@ -310,7 +310,6 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                 end
             end
             
-            # TODO setting these loads to zero makes infeasible problem? can we not construct the variables/constraints for non-existent phases/lines/loads? the model will choose these values according to the objective otherwise
             for phs in setdiff(phases_into_bus[j], keys(p.Pload[j]))
                 @constraint(m, [t in 1:p.Ntimesteps],
                     Pⱼ[j,phs,t] == 0
