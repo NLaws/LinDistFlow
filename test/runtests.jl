@@ -169,6 +169,7 @@ end
     vsqrd = get_bus_values("vsqrd", m, p)
     vmag = Dict(k => sqrt(v) for (k,v) in vsqrd)
 
+end
 @testset "modify bus injections" begin
     p = Inputs(
         "data/13bus/IEEE13Nodeckt.dss", 
