@@ -181,7 +181,6 @@ function Inputs(
         P_lo_bound=-1e4,
         Q_lo_bound=-1e4,
     )
-    @info pwd()
     d = open(dssfilepath) do io  # 
         parse_dss(io)
     end
