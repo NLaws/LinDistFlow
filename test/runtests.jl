@@ -21,7 +21,7 @@ Random.seed!(42)
     Vbase = 12.5e3
 
     ldf_inputs = Inputs(
-        joinpath(".", "data", "singlephase38lines", "master.dss"), 
+        joinpath("data", "singlephase38lines", "master.dss"), 
         "0";
         Pload=Pload, 
         Qload=Qload,
@@ -56,7 +56,7 @@ end
     - remove the "distributed load" on bus 670  (removing this load makes all Qvar ≈ 0 ???)
     =#
     p = Inputs(
-        joinpath(".", "data", "13bus", "IEEE13Nodeckt.dss"), 
+        joinpath("data", "13bus", "IEEE13Nodeckt.dss"), 
         "rg60";
         Pload=Dict(),
         Qload=Dict(),
@@ -204,7 +204,7 @@ end
 
 @testset "modify bus injections" begin
     p = Inputs(
-        joinpath(".", "data", "13bus", "IEEE13Nodeckt.dss"), 
+        joinpath("data", "13bus", "IEEE13Nodeckt.dss"), 
         "rg60";
         Pload=Dict(),
         Qload=Dict(),
