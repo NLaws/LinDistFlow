@@ -21,7 +21,7 @@ Random.seed!(42)
     Vbase = 12.5e3
 
     ldf_inputs = Inputs(
-        "data/singlephase38lines/master.dss", 
+        joinpath("data", "singlephase38lines", "master.dss"), 
         "0";
         Pload=Pload, 
         Qload=Qload,
@@ -56,7 +56,7 @@ end
     - remove the "distributed load" on bus 670  (removing this load makes all Qvar ≈ 0 ???)
     =#
     p = Inputs(
-        "data/13bus/IEEE13Nodeckt.dss", 
+        joinpath("data", "13bus", "IEEE13Nodeckt.dss"), 
         "rg60";
         Pload=Dict(),
         Qload=Dict(),
@@ -157,6 +157,20 @@ end
             phsc += value(m[:Qvar][b][phs][t])/p.Sbase
         end
     end
+
+    #=
+    632.1 -0.0082
+    632.2 -0.0258
+    632.3 0.0344
+    675.1 -0.0156
+    675.2 -0.0473
+    675.3 0.0637
+    680.1 -0.0156
+    680.2 -0.0496
+    680.3 0.0659
+    684.1 -0.0154
+    684.3 0.0631
+    =#
     
     #=
     Not getting same values as Arnold for Qvar.
@@ -169,10 +183,28 @@ end
     vsqrd = get_bus_values("vsqrd", m, p)
     vmag = Dict(k => sqrt(v) for (k,v) in vsqrd)
 
+    # phs3vs = Dict()
+    # for (k,v) in vmag
+    #     if contains(k,"3,1]")
+    #         phs3vs[k[7:9]]=v
+    #     end
+    # end
+    # phs3vs["650"] = phs3vs["rg6"]
+    # plotbusses = ["650", "632", "633", "634", "645", "646", "671", "692", "675", "680", "684", "652", "611"]
+    # plotbusses3 = ["650", "632", "633", "634", "645", "646", "671", "692", "675", "680", "684", "611"] # no 652
+    # plotvs = []
+    # for b in plotbusses3
+    #     push!(plotvs, phs3vs[b])
+    # end
+    # plot(plotbusses3, plotvs, line=:scatter)
+    # plot!(plotbusses3, repeat([0.95], length(plotbusses3)))
+    # # looks good with forced Qvar
 end
+
+
 @testset "modify bus injections" begin
     p = Inputs(
-        "data/13bus/IEEE13Nodeckt.dss", 
+        joinpath("data", "13bus", "IEEE13Nodeckt.dss"), 
         "rg60";
         Pload=Dict(),
         Qload=Dict(),
