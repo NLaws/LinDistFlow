@@ -181,7 +181,9 @@ function Inputs(
         P_lo_bound=-1e4,
         Q_lo_bound=-1e4,
     )
-    d = parse_dss(dssfilepath)
+    d = open(dssfilepath) do io  # 
+        parse_dss(io)
+    end
     edges, linecodes, linelengths, linecodes_dict, phases = dss_dict_to_arrays(d)
 
     if isempty(Pload) && isempty(Qload)
