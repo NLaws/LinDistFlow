@@ -27,6 +27,7 @@ mutable struct Inputs{T<:Phases} <: AbstractInputs
     Q_up_bound::Float64
     P_lo_bound::Float64
     Q_lo_bound::Float64
+    phases_into_bus::Dict{String, Vector{Int}}
 end
 # TODO line flow limits
 
@@ -74,6 +75,9 @@ function Inputs(
     if v_lolim < 0 @error("lower voltage limit v_lolim cannot be less than zero") end
     if v_uplim < 0 @error("upper voltage limit v_uplim cannot be less than zero") end
 
+    receiving_busses = collect(e[2] for e in edges)
+    phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, phases))
+
     if any(get(v, "nphases", 1) == 3 for v in values(Zdict))
         Inputs{ThreePhase}(
             edges,
@@ -101,6 +105,7 @@ function Inputs(
             Q_up_bound,
             P_lo_bound,
             Q_lo_bound,
+            phases_into_bus
         )
     else
         Inputs{SinglePhase}(
@@ -129,6 +134,7 @@ function Inputs(
             Q_up_bound,
             P_lo_bound,
             Q_lo_bound,
+            phases_into_bus
         )
     end
 end

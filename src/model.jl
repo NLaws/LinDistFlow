@@ -35,7 +35,6 @@ end
 
 function add_variables(m, p::Inputs{ThreePhase})
     receiving_busses = collect(e[2] for e in p.edges)
-    phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
     d = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
     d[p.substation_bus] = [1,2,3]
     T = 1:p.Ntimesteps
@@ -111,16 +110,11 @@ function constrain_power_balance(m, p::Inputs{ThreePhase})
     Qⱼ = m[:Qⱼ]
     Pᵢⱼ = m[:Pᵢⱼ]
     Qᵢⱼ = m[:Qᵢⱼ]
-    # TODO change Pⱼ and Qⱼ to expressions, make P₀ and Q₀ dv's, which will reduce # of variables
-    # by (Nnodes - 1)*8760 and number of constraints by 6*(Nnodes - 1)*8760
-    # TODO phs look up by node j
-    receiving_busses = collect(e[2] for e in p.edges)
-    phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
-    d = Dict(k=>v for (k,v) in zip(p.busses, p.phases)) # WRONG phases is for edges, not busses
+
     source_nodes = setdiff([string(e[1]) for e in p.edges],[e[2] for e in p.edges])
     for j in source_nodes
         for phs in [1,2,3]
-            ks_on_phs = [k for k in j_to_k(j, p) if phs in phases_into_bus[k]]
+            ks_on_phs = [k for k in j_to_k(j, p) if phs in p.phases_into_bus[k]]
             if !isempty(ks_on_phs)
                 @constraint(m, [t in 1:p.Ntimesteps],
                     Pⱼ[j,phs,t] - sum( Pᵢⱼ[string(j*"-"*k), phs, t] for k in ks_on_phs ) == 0
@@ -150,8 +144,8 @@ function constrain_power_balance(m, p::Inputs{ThreePhase})
                 Qⱼ[j,phs,t] == 0
             )
         else  
-            for phs in phases_into_bus[j]
-                ks_on_phs = [k for k in j_to_k(j, p) if phs in phases_into_bus[k]]
+            for phs in p.phases_into_bus[j]
+                ks_on_phs = [k for k in j_to_k(j, p) if phs in p.phases_into_bus[k]]
                 if !isempty(ks_on_phs)  # mid node
                     @constraint(m, [t in 1:p.Ntimesteps],
                         sum( Pᵢⱼ[string(i*"-"*j), phs, t] for i in i_to_j(j, p) ) +
@@ -218,19 +212,16 @@ function constrain_KVL(m, p::Inputs{ThreePhase})
     w = m[:vsqrd]
     P = m[:Pᵢⱼ]
     Q = m[:Qᵢⱼ]
-    # TODO add next 2 lines to Inputs
-    receiving_busses = collect(e[2] for e in p.edges)
-    phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
     for j in p.busses
         for i in i_to_j(j, p)  # for radial network there is only one i in i_to_j
             i_j = string(i*"-"*j)
             MP = MPij(i,j,p)
             MQ = MQij(i,j,p)
-            for phs in phases_into_bus[j]
+            for phs in p.phases_into_bus[j]
                 @constraint(m, [t in 1:p.Ntimesteps],
                     w[j,phs,t] == w[i,phs,t]
-                        + sum(MP[phs,k] * P[i_j,k,t] for k=phases_into_bus[j])
-                        + sum(MQ[phs,k] * Q[i_j,k,t] for k=phases_into_bus[j])
+                        + sum(MP[phs,k] * P[i_j,k,t] for k=p.phases_into_bus[j])
+                        + sum(MQ[phs,k] * Q[i_j,k,t] for k=p.phases_into_bus[j])
                 )
             end
         end
@@ -290,14 +281,12 @@ function constrain_loads(m, p::Inputs{ThreePhase})
     m[:cons] = Dict()
     m[:cons][:injection_equalities] = Dict()
     
-    receiving_busses = collect(e[2] for e in p.edges)
-    phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
     for j in p.busses
         m[:cons][:injection_equalities][j] = Dict()
         m[:cons][:injection_equalities][j][:P] = Dict()
         if j in keys(p.Pload)
             for phs in keys(p.Pload[j])
-                if !(phs in phases_into_bus[j])
+                if !(phs in p.phases_into_bus[j])
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
                     m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
@@ -306,13 +295,13 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                 end
             end
             
-            for phs in setdiff(phases_into_bus[j], keys(p.Pload[j]))
+            for phs in setdiff(p.phases_into_bus[j], keys(p.Pload[j]))
                 m[:cons][:injection_equalities][j][:P][phs] = m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                     Pⱼ[j,phs,t] == 0
                 )
             end
         elseif j != p.substation_bus
-            for phs in phases_into_bus[j]
+            for phs in p.phases_into_bus[j]
                 m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                     Pⱼ[j,phs,t] == 0
                 )
@@ -322,7 +311,7 @@ function constrain_loads(m, p::Inputs{ThreePhase})
         m[:cons][:injection_equalities][j][:Q] = Dict()
         if j in keys(p.Qload)
             for phs in keys(p.Qload[j])
-                if !(phs in phases_into_bus[j])
+                if !(phs in p.phases_into_bus[j])
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
                     m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
@@ -330,14 +319,14 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                     )
                 end
             end
-            for phs in setdiff(phases_into_bus[j], keys(p.Qload[j]))
+            for phs in setdiff(p.phases_into_bus[j], keys(p.Qload[j]))
                 m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                     Qⱼ[j,phs,t] == 0
                 )
             end
 
         elseif j != p.substation_bus
-            for phs in phases_into_bus[j]
+            for phs in p.phases_into_bus[j]
                 m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
                     Qⱼ[j,phs,t] == 0
                 )

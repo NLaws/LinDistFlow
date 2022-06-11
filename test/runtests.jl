@@ -72,8 +72,6 @@ end
         Q_lo_bound=-1e5,
     );
 
-    receiving_busses = collect(e[2] for e in p.edges)
-    phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))  # TODO add this to Inputs
     Qresource_nodes = ["632", "675", "680", "684"]
 
     for linecode in keys(p.Zdict)
@@ -98,7 +96,7 @@ end
     m[:Qvar] = Dict()
     for b in Qresource_nodes
         m[:Qvar][b] = Dict()
-        for phs in phases_into_bus[b]
+        for phs in p.phases_into_bus[b]
             m[:Qvar][b][phs] = @variable(m, [1:p.Ntimesteps])
             delete(m, m[:cons][:injection_equalities][b][:Q][phs])
             if b in keys(p.Qload) && phs in keys(p.Qload[b])
@@ -120,11 +118,11 @@ end
 
     
     @objective(m, Min,
-        0.5* sum( (m[:Qvar][b][phs][1] / p.Sbase)^2 for b in Qresource_nodes, phs in phases_into_bus[b]) +
+        0.5* sum( (m[:Qvar][b][phs][1] / p.Sbase)^2 for b in Qresource_nodes, phs in p.phases_into_bus[b]) +
         sum(
             (m[:vsqrd][b,phs1,1] - m[:vsqrd][b,phs2,1])^2
             for b in setdiff(p.busses, [p.substation_bus]), 
-                (phs1, phs2) in [[1,2], [1,3], [2,3]] if phs1 in phases_into_bus[b] && phs2 in phases_into_bus[b]
+                (phs1, phs2) in [[1,2], [1,3], [2,3]] if phs1 in p.phases_into_bus[b] && phs2 in p.phases_into_bus[b]
         )
     )
 
@@ -149,7 +147,7 @@ end
     @test termination_status(m) == MOI.LOCALLY_SOLVED
 
     phsa,phsb,phsc = 0,0,0
-    for b in Qresource_nodes, phs in phases_into_bus[b], t in 1:1
+    for b in Qresource_nodes, phs in p.phases_into_bus[b], t in 1:1
         println(b, ".", phs, " ", round(value(m[:Qvar][b][phs][t])/p.Sbase, digits=4) )
         if phs == 1
             phsa += value(m[:Qvar][b][phs][t])/p.Sbase
