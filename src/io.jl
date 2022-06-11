@@ -68,7 +68,10 @@ end
 
 
 """
+    dss_loads(d::Dict)
 
+Return the P,Q loads from the dict provided by parse_dss. Indexed on bus (String), phase (integer),
+then time (integer)
 """
 function dss_loads(d::Dict)
     P, Q = Dict{String, Dict{Int, Array{Real}}}(), Dict{String, Dict{Int, Array{Real}}}()
