@@ -5,6 +5,11 @@
 The intent of this package is to allow users to build mathematical programs that include LinDistFlow constraints.
 No objective is added to the JuMP model in this package and so solving any problem defined by the constraints built by LinDistFlow.jl is a feasibility problem. Dictionaries of constraints are provided so that one can delete and/or modify the base constraints to fit their problem.
 
+# Inputs
+```@docs
+Inputs(::String, ::String)
+```
+
 # Accessing and Modifying Constraints
 Let the JuMP.Model provided by the user be called `m`. All constraints are stored in `m[:cons]` as anonymous constraints.
 
