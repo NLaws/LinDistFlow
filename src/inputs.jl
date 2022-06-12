@@ -44,8 +44,6 @@ mutable struct Inputs{T<:Phases} <: AbstractInputs
     v_uplim::Real
     Zbase::Real
     Ntimesteps::Int
-    Nequality_cons::Int
-    Nlte_cons::Int
     pf::Float64
     Nnodes::Int
     P_up_bound::Float64
@@ -73,8 +71,6 @@ end
         v_lolim=0.95, 
         v_uplim=1.05,
         Ntimesteps=1, 
-        Nequality_cons=0, 
-        Nlte_cons=0,
         P_up_bound=1e4,
         Q_up_bound=1e4,
         P_lo_bound=-1e4,
@@ -101,8 +97,6 @@ function Inputs(
         v_lolim=0.95, 
         v_uplim=1.05,
         Ntimesteps=1, 
-        Nequality_cons=0, 
-        Nlte_cons=0,
         P_up_bound=1e4,
         Q_up_bound=1e4,
         P_lo_bound=-1e4,
@@ -144,8 +138,6 @@ function Inputs(
             v_uplim,
             Zbase,
             Ntimesteps,
-            Nequality_cons,
-            Nlte_cons,
             0.1,  # power factor
             length(busses),  # Nnodes
             P_up_bound,
@@ -173,8 +165,6 @@ function Inputs(
             v_uplim,
             Zbase,
             Ntimesteps,
-            Nequality_cons,
-            Nlte_cons,
             0.1,  # power factor
             length(busses),  # Nnodes
             P_up_bound,
@@ -199,8 +189,6 @@ end
         v_lolim=0.95, 
         v_uplim=1.05,
         Ntimesteps=1, 
-        Nequality_cons=0, 
-        Nlte_cons=0,
         P_up_bound=1e4,
         Q_up_bound=1e4,
         P_lo_bound=-1e4,
@@ -221,8 +209,6 @@ function Inputs(
         v_lolim=0.95, 
         v_uplim=1.05,
         Ntimesteps=1, 
-        Nequality_cons=0, 
-        Nlte_cons=0,
         P_up_bound=1e4,
         Q_up_bound=1e4,
         P_lo_bound=-1e4,
@@ -252,8 +238,6 @@ function Inputs(
         v_lolim = v_lolim, 
         v_uplim = v_uplim, 
         Ntimesteps=Ntimesteps,
-        Nequality_cons=Nequality_cons,
-        Nlte_cons=Nlte_cons,
         P_up_bound=P_up_bound,
         Q_up_bound=Q_up_bound,
         P_lo_bound=P_lo_bound,

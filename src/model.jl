@@ -54,7 +54,6 @@ function add_variables(m, p::Inputs{ThreePhase})
     @variable(m, p.P_lo_bound <= Pᵢⱼ[e in keys(edge2phases), edge2phases[e], T] <= p.P_up_bound )
     
     @variable(m, p.Q_lo_bound <= Qᵢⱼ[e in keys(edge2phases), edge2phases[e], T] <= p.Q_up_bound )
-    # TODO Inputs: rm Nlte_cons, Nequality_cons, add bus2phases dict
     # TODO line flow limit inputs
     nothing
 end
@@ -101,7 +100,7 @@ function constrain_power_balance(m, p::Inputs)
             )
         end
     end
-    p.Nequality_cons += 2 * p.Nnodes * p.Ntimesteps
+    nothing
 end
 
 
@@ -175,7 +174,7 @@ function constrain_substation_voltage(m, p::Inputs)
     @constraint(m, con_substationV[t in 1:p.Ntimesteps],
        m[:vsqrd][p.substation_bus, t] == p.v0^2
     )
-    p.Nequality_cons += p.Ntimesteps
+    nothing
 end
 
 
@@ -202,7 +201,7 @@ function constrain_KVL(m, p::Inputs)
             )
         end
     end
-    p.Nequality_cons += length(p.edges) * p.Ntimesteps
+    nothing
 end
 
 
@@ -260,8 +259,7 @@ function constrain_loads(m, p::Inputs)
             )
         end
     end
-    
-    p.Nequality_cons += 2 * (p.Nnodes - 1) * p.Ntimesteps
+    nothing
 end
 
 
