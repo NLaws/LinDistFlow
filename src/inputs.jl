@@ -1,5 +1,30 @@
 """
-mutable struct Inputs{T<:Phase} <: AbstractInputs
+    mutable struct Inputs{T<:Phases} <: AbstractInputs
+        edges::Array{Tuple, 1}
+        linecodes::Array{String, 1}
+        linelengths::Array{Float64, 1}
+        busses::Array{String}
+        phases::Vector{Vector}
+        substation_bus::String
+        Pload::Dict{String, Any}
+        Qload::Dict{String, Any}
+        Sbase::Real
+        Vbase::Real
+        Ibase::Real
+        Zdict::Dict{String, Dict{String, Any}}
+        v0::Real
+        v_lolim::Real
+        v_uplim::Real
+        Zbase::Real
+        Ntimesteps::Int
+        pf::Float64
+        Nnodes::Int
+        P_up_bound::Float64
+        Q_up_bound::Float64
+        P_lo_bound::Float64
+        Q_lo_bound::Float64
+        phases_into_bus::Dict{String, Vector{Int}}
+    end
 """
 mutable struct Inputs{T<:Phases} <: AbstractInputs
     edges::Array{Tuple, 1}

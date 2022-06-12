@@ -6,9 +6,28 @@ The intent of this package is to allow users to build mathematical programs that
 No objective is added to the JuMP model in this package and so solving any problem defined by the constraints built by LinDistFlow.jl is a feasibility problem. Dictionaries of constraints are provided so that one can delete and/or modify the base constraints to fit their problem.
 
 # Inputs
+There are two methods for creating `Inputs`:
+1. Using openDSS files
+2. Providing the network topology
 ```@docs
 Inputs(::String, ::String)
+Inputs(::Array{Tuple}, ::Array{String}, ::Array{Float64}, ::Vector{Vector}, ::String)
 ```
+Both of the `Inputs` functions return a mutable `Inputs` struct:
+```@docs
+Inputs
+```
+
+# Variables
+Let `m` be the JuMP.Model provided by the user, then the variables can be accessed via:
+- `m[:vsqrd]` voltage magnitude squared, indexed on busses, (phases), time
+- `m[:Pⱼ], m[:Qⱼ]` net real, reactive power injection, indexed on busses, (phases), time
+- `m[:Pᵢⱼ], m[:Qᵢⱼ]` net real, reactive line flow, indexed on edges, (phases), time
+After a model has been solved using `JuMP.optimize!` variable values can be extracted with `JuMP.value`. For more see [Getting started with JuMP](https://jump.dev/JuMP.jl/stable/tutorials/getting_started/getting_started_with_JuMP/#Getting-started-with-JuMP).
+
+
+!!! note
+    Single phase models do not have a phase index
 
 # Accessing and Modifying Constraints
 Let the JuMP.Model provided by the user be called `m`. All constraints are stored in `m[:cons]` as anonymous constraints.
