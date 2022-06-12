@@ -7,7 +7,7 @@ makedocs(
     modules = [LinDistFlow],
     workdir = joinpath(@__DIR__, ".."),
     pages = [
-        "Home" => "index.md",
+        "User Documentation" => "index.md",
         "Math" => "math.md"
     ],
 )
