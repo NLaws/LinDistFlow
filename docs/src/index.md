@@ -18,6 +18,12 @@ Both of the `Inputs` functions return a mutable `Inputs` struct:
 Inputs
 ```
 
+# Building a Model
+The `build_ldf!` function takes a `JuMP.Model` and `Inputs` struct as its two arguments and adds the variables and constraints:
+```@docs
+build_ldf!
+```
+
 # Variables
 Let `m` be the JuMP.Model provided by the user, then the variables can be accessed via:
 - `m[:vsqrd]` voltage magnitude squared, indexed on busses, (phases), time
