@@ -31,8 +31,6 @@ function add_variables(m, p::Inputs)
 
     # voltage squared
     @variable(m, p.v_lolim^2 <= vsqrd[p.busses, T] <= p.v_uplim^2 ) 
-
-    p.Nlte_cons += 6 * p.Nnodes * p.Ntimesteps
     
     ij_edges = [string(i*"-"*j) for j in p.busses for i in i_to_j(j, p)]
 
