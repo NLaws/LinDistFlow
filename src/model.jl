@@ -283,8 +283,8 @@ end
 function constrain_loads(m, p::Inputs{ThreePhase})
     Pⱼ = m[:Pⱼ]
     Qⱼ = m[:Qⱼ]
-    a0 = 0.85
-    a1 = 0.15
+    a0 = 0.9  # TODO keep a0 and a1 values? (will have to update more P/Q constraints in 3 phase test)
+    a1 = 0.1
     m[:cons] = Dict()
     m[:cons][:injection_equalities] = Dict()
     
