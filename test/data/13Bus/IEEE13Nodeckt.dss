@@ -1,9 +1,5 @@
-Clear 
-
-!
-! This script is based on a script developed by Tennessee Tech Univ students
-! Tyler Patton, Jon Wood, and David Woods, April 2009
-!
+! This configuration file has been modified from the original IEEE13 model to match values used in
+! the 2016 paper by Arnold et al. (using CSVs in https://github.com/msankur/LinDist3Flow/tree/master/IEEE%20PES%202016/matlab/feeder13)
 
 new circuit.IEEE13Nodeckt 
 ~ basekv=115 pu=1.0001 phases=3 bus1=SourceBus  
@@ -53,8 +49,8 @@ New linecode.mtx602 nphases=3 BaseFreq=60
 ~ xmatrix = (1.1814 | 0.4236 1.1983 | 0.5017 0.3849 1.2112 ) 
 ~ units=mi 
 New linecode.mtx603 nphases=2 BaseFreq=60 
-~ rmatrix = (1.3238 | 0.2066 1.3294 ) 
-~ xmatrix = (1.3569 | 0.4591 1.3471 ) 
+~ rmatrix = (1.3294 | 0.2066 1.3238) 
+~ xmatrix = (1.3471 | 0.4591 1.3569) 
 ~ units=mi 
 New linecode.mtx604 nphases=2 BaseFreq=60 
 ~ rmatrix = (1.3238 | 0.2066 1.3294 ) 
@@ -64,88 +60,47 @@ New linecode.mtx605 nphases=1 BaseFreq=60
 ~ rmatrix = (1.3292 ) 
 ~ xmatrix = (1.3475 ) 
 ~ units=mi 
-
-/*********** Original 606 Linecode *********************
-
-You have to use this to match Kersting's results:
-
 New linecode.mtx606 nphases=3 BaseFreq=60 
 ~ rmatrix = (0.7982 | 0.3192 0.7891 | 0.2849 0.3192 0.7982 ) 
 ~ xmatrix = (0.4463 | 0.0328 0.4041 | -0.0143 0.0328 0.4463 ) 
-~ Cmatrix = [257 | 0 257 | 0 0 257]  ! <--- This is too low by 1.5
 ~ units=mi 
-
-Corrected mtx606  Feb 3 2016 by RDugan
-
-The new LineCode.606 is computed using the following CN cable definition and 
-LineGeometry definition:
-
-New CNDATA.250_1/3 k=13 DiaStrand=0.064 Rstrand=2.816666667 epsR=2.3
-~ InsLayer=0.220 DiaIns=1.06 DiaCable=1.16 Rac=0.076705 GMRac=0.20568 diam=0.573
-~ Runits=kft Radunits=in GMRunits=in
-
-New LineGeometry.606 nconds=3 nphases=3 units=ft
-~ cond=1 cncable=250_1/3 x=-0.5 h= -4
-~ cond=2 cncable=250_1/3 x=0   h= -4
-~ cond=3 cncable=250_1/3 x=0.5  h= -4
-
-****End Comment******/ 
-
-New Linecode.mtx606 nphases=3  Units=mi
-~ Rmatrix=[0.791721  |0.318476  0.781649  |0.28345  0.318476  0.791721  ]
-~ Xmatrix=[0.438352  |0.0276838  0.396697  |-0.0184204  0.0276838  0.438352  ]
-~ Cmatrix=[383.948  |0  383.948  |0  0  383.948  ]
 New linecode.mtx607 nphases=1 BaseFreq=60 
 ~ rmatrix = (1.3425 ) 
 ~ xmatrix = (0.5124 )
-~ cmatrix = [236] 
 ~ units=mi 
 
 
-!LOAD DEFINITIONS 
-New Load.671 Bus1=671.1.2.3  Phases=3 Conn=Delta Model=1 kV=4.16   kW=1155 kvar=660 
-New Load.634a Bus1=634.1     Phases=1 Conn=Wye  Model=1 kV=0.277  kW=160   kvar=110 
-New Load.634b Bus1=634.2     Phases=1 Conn=Wye  Model=1 kV=0.277  kW=120   kvar=90 
-New Load.634c Bus1=634.3     Phases=1 Conn=Wye  Model=1 kV=0.277  kW=120   kvar=90 
-New Load.645 Bus1=645.2       Phases=1 Conn=Wye  Model=1 kV=2.4      kW=170   kvar=125 
-New Load.646 Bus1=646.2.3    Phases=1 Conn=Delta Model=2 kV=4.16    kW=230   kvar=132 
-New Load.692 Bus1=692.3.1    Phases=1 Conn=Delta Model=5 kV=4.16    kW=170   kvar=151 
-New Load.675a Bus1=675.1    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=485   kvar=190 
+!LOAD DEFINITIONS bus 675 has capacitors on all three phases, bus 611 has cap on phase 3
+New Load.671  Bus1=671.1.2.3 Phases=3 Conn=Delta Model=1 kV=4.16   kW=1155  kvar=660
+New Load.634a Bus1=634.1     Phases=1 Conn=Wye   Model=1 kV=0.277  kW=160   kvar=110 
+New Load.634b Bus1=634.2     Phases=1 Conn=Wye   Model=1 kV=0.277  kW=120   kvar=90 
+New Load.634c Bus1=634.3     Phases=1 Conn=Wye   Model=1 kV=0.277  kW=120   kvar=90
+New Load.645  Bus1=645.2     Phases=1 Conn=Wye   Model=1 kV=2.4    kW=170   kvar=125 
+New Load.646 Bus1=646.2      Phases=1 Conn=Delta Model=2 kV=4.16    kW=230   kvar=132
+New Load.692 Bus1=692.3    Phases=1 Conn=Delta Model=5 kV=4.16    kW=170   kvar=151 
+New Load.675a Bus1=675.1    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=485   kvar=190
 New Load.675b Bus1=675.2    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=68   kvar=60 
-New Load.675c Bus1=675.3    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=290   kvar=212 
-New Load.611 Bus1=611.3      Phases=1 Conn=Wye  Model=5 kV=2.4  kW=170   kvar=80 
+New Load.675c Bus1=675.3    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=290   kvar=212
+New Load.611 Bus1=611.3      Phases=1 Conn=Wye  Model=5 kV=2.4  kW=170   kvar=80
 New Load.652 Bus1=652.1      Phases=1 Conn=Wye  Model=2 kV=2.4  kW=128   kvar=86 
-New Load.670a Bus1=670.1    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=17    kvar=10 
-New Load.670b Bus1=670.2    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=66    kvar=38 
-New Load.670c Bus1=670.3    Phases=1 Conn=Wye  Model=1 kV=2.4  kW=117  kvar=68 
 
-!CAPACITOR DEFINITIONS
-New Capacitor.Cap1 Bus1=675 phases=3 kVAR=600 kV=4.16 
-New Capacitor.Cap2 Bus1=611.3 phases=1 kVAR=100 kV=2.4 
-
-!Bus 670 is the concentrated point load of the distributed load on line 632 to 671 located at 1/3 the distance from node 632
+! extra load from msankur repo
+New Load.680 Bus1=680.1.2.3  Phases=3 Conn=Wye  Model=2 kV=2.4  kW=30   kvar=15
 
 !LINE DEFINITIONS 
-New Line.650632    Phases=3 Bus1=RG60.1.2.3   Bus2=632.1.2.3  LineCode=mtx601 Length=0.3787878787878788 units=mi 
-New Line.632670    Phases=3 Bus1=632.1.2.3    Bus2=670.1.2.3  LineCode=mtx601 Length=0.126325757575757  units=mi    
-New Line.670671    Phases=3 Bus1=670.1.2.3    Bus2=671.1.2.3  LineCode=mtx601 Length=0.2524621212121212 units=mi 
-New Line.671680    Phases=3 Bus1=671.1.2.3    Bus2=680.1.2.3  LineCode=mtx601 Length=0.1893939393939394 units=mi 
-New Line.632633    Phases=3 Bus1=632.1.2.3    Bus2=633.1.2.3  LineCode=mtx602 Length=0.0946969696969697  units=mi 
-New Line.633634    Phases=3 Bus1=633.1.2.3    Bus2=634.1.2.3  LineCode=mtx602 Length=0.00946969696969697  units=mi 
-New Line.632645    Phases=2 Bus1=632.3.2      Bus2=645.3.2    LineCode=mtx603 Length=0.0946969696969697  units=mi 
-New Line.645646    Phases=2 Bus1=645.3.2      Bus2=646.3.2    LineCode=mtx603 Length=0.0568181818181818  units=mi 
-New Line.692675    Phases=3 Bus1=692.1.2.3    Bus2=675.1.2.3  LineCode=mtx606 Length=0.0946969696969697  units=mi 
+New Line.650632    Phases=3 Bus1=RG60.1.2.3   Bus2=632.1.2.3  LineCode=mtx601 Length=0.3787878787878788 units=mi
+New Line.632671    Phases=3 Bus1=632.1.2.3    Bus2=671.1.2.3  LineCode=mtx601 Length=0.3787878787878788  units=mi
+New Line.671680    Phases=3 Bus1=671.1.2.3    Bus2=680.1.2.3  LineCode=mtx601 Length=0.1893939393939394 units=mi
+New Line.632633    Phases=3 Bus1=632.1.2.3    Bus2=633.1.2.3  LineCode=mtx602 Length=0.0946969696969697  units=mi
+New Line.633634    Phases=3 Bus1=633.1.2.3    Bus2=634.1.2.3  LineCode=mtx601 Length=0.00946969696969697  units=mi
+New Line.632645    Phases=2 Bus1=632.3.2      Bus2=645.3.2    LineCode=mtx603 Length=0.0946969696969697  units=mi
+New Line.645646    Phases=2 Bus1=645.3.2      Bus2=646.3.2    LineCode=mtx603 Length=0.0568181818181818  units=mi
+New Line.692675    Phases=3 Bus1=692.1.2.3    Bus2=675.1.2.3  LineCode=mtx606 Length=0.0946969696969697  units=mi
+New Line.671692    Phases=3 Bus1=671.1.2.3    Bus2=692.1.2.3  LineCode=mtx601 Length=0.00946969697  units=mi 
 New Line.671684    Phases=2 Bus1=671.1.3      Bus2=684.1.3    LineCode=mtx604 Length=0.05681818181818181  units=mi 
 New Line.684611    Phases=1 Bus1=684.3        Bus2=611.3      LineCode=mtx605 Length=0.05681818181818181  units=mi 
 New Line.684652    Phases=1 Bus1=684.1        Bus2=652.1      LineCode=mtx607 Length=0.15151515151515152  units=mi 
 
 
-!SWITCH DEFINITIONS (nlaws: had to make it a line for LinDistFlow)
-New linecode.switch nphases=1 BaseFreq=60 
-~ rmatrix = (0.0004 | 0.0 0.0004 | 0.0 0.0 0.0004) 
-~ xmatrix = (0.0 | 0.0 0.0 | 0.0 0.0 0.0) 
-~ units=mi 
-
-New Line.671692  Phases=3  Bus1=671.1.2.3  Bus2=692.1.2.3  LineCode=switch Length=1.0  units=mi 
 
 Set Voltagebases=[115, 4.16, .48]
