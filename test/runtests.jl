@@ -48,7 +48,7 @@ end
     #=
     Validating against Arnold 2016 results, which requires:
     - matching the loads, capacitors, and lines in https://github.com/msankur/LinDist3Flow/tree/master/IEEE%20PES%202016/matlab/feeder13
-    - changing the objective function in IEEE PES 2016/matlab/2016.01.05/V_Balance_Solver_Yapprox_20160105.m on lines 400 and 402 to Z = Z +  (FV(:,:,k1)*X)'*(FV(:,:,k1)*X); and Z = Z + 0.5*(Fu*X)'*(Fu*X);, i.e. make the squared L2 norm rather than the L2 norm 
+    - changing the objective function in IEEE PES 2016/matlab/2016.01.05/V_Balance_Solver_Yapprox_20160105.m on lines 400 and 402 to Z = Z +  (FV(:,:,k1)*X)'*(FV(:,:,k1)*X); and Z = Z + 0.5*(Fu*X)'*(Fu*X);, i.e. use the squared L2 norm rather than the L2 norm 
         - note that the optimal Qvar values reported in the paper used the L2 norm objective, but the addition of the sqrt to the NLobjective does not work with Ipopt, so I modified the matlab objective from msankure to match the paper objective and the objective herein, which results in different optimal Qvar values than those reported in the paper. This test compares the optimal Qvar values to those obtained from the Matlab model with the squared L2 norm objective.
     - removing the random additions to the a0 and a1 coefficients in IEEE PES 2016/matlab/2016.01.05/runSim_iter_1step.m (and running the same file)
     - increasing impedances by 1.25 (Section IV, paragraph 3)
@@ -94,6 +94,25 @@ end
 
     a0 = 0.9
     a1 = 0.1
+
+    # add loads with voltage dependency
+    for b in keys(p.Pload)
+        for phs in keys(p.Pload[b])
+            delete(m, m[:cons][:injection_equalities][b][:P][phs])
+            m[:cons][:injection_equalities][b][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
+                m[:Pⱼ][b,phs,t] == -p.Pload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t])
+            )
+        end
+    end
+    for b in keys(p.Qload)
+        for phs in keys(p.Qload[b])
+            delete(m, m[:cons][:injection_equalities][b][:Q][phs])
+            m[:cons][:injection_equalities][b][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
+                m[:Qⱼ][b,phs,t] == -p.Qload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t])
+            )
+        end
+    end
+
     # add the var resources 
     m[:Qvar] = Dict()
     for b in Qresource_nodes
@@ -108,6 +127,10 @@ end
                     -p.Qload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t]) + 
                     m[:Qvar][b][phs][t] / p.Sbase +
                     200_000 / p.Sbase
+                )
+                delete(m, m[:cons][:injection_equalities][b][:P][phs])
+                m[:cons][:injection_equalities][b][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
+                    m[:Pⱼ][b,phs,t] == -p.Pload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t])
                 )
             elseif b in keys(p.Qload) && phs in keys(p.Qload[b])
                 m[:cons][:injection_equalities][b][:Q][phs] = 

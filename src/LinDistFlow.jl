@@ -2,7 +2,6 @@ module LinDistFlow
 
 using JuMP
 using LinearAlgebra
-using Logging
 import SparseArrays: sparse
 import PowerModelsDistribution: parse_dss
 

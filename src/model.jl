@@ -276,15 +276,13 @@ end
 """
     constrain_loads(m, p::Inputs{ThreePhase})
 
-- set loads to negative of Inputs.Pload, which are normalized by Sbase when creating Inputs
-- keys of Pload must match Inputs.busses. Any missing keys have load set to zero.
+- set loads to negative of Inputs.Pload and Qload, which are normalized by Sbase when creating Inputs
+- keys of Pload and Qload must match Inputs.busses. Any missing keys have load set to zero.
 - Inputs.substation_bus is unconstrained, slack bus
 """
 function constrain_loads(m, p::Inputs{ThreePhase})
     Pⱼ = m[:Pⱼ]
     Qⱼ = m[:Qⱼ]
-    a0 = 0.9  # TODO keep a0 and a1 values? (will have to update more P/Q constraints in 3 phase test)
-    a1 = 0.1
     m[:cons] = Dict()
     m[:cons][:injection_equalities] = Dict()
     
@@ -297,7 +295,7 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
                     m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                        Pⱼ[j,phs,t] == -p.Pload[j][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][j,phs,t])
+                        Pⱼ[j,phs,t] == -p.Pload[j][phs][t] / p.Sbase
                     )
                 end
             end
@@ -322,7 +320,7 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
                     m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                        Qⱼ[j,phs,t] == -p.Qload[j][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][j,phs,t])
+                        Qⱼ[j,phs,t] == -p.Qload[j][phs][t] / p.Sbase
                     )
                 end
             end

@@ -1,6 +1,7 @@
 # LinDistFlow Changelog
 
-## develop
+## v0.2.0
+- add three phase, unbalanced capability and documentation
 - remove `dss_parse_lines` and `dss_parse_line_codes` methods; add `PowerModelsDistribution.parse_dss`
 - `Inputs` only requires a "master.dss" file path now (instead two file paths for line codes and lines)
 
