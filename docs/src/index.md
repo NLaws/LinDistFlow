@@ -1,7 +1,6 @@
 # LinDistFlow.jl
 
-`LinDistFlow` builds the linear distflow constraints using JuMP. Currently only the single phase model is supported, but the multiphase unbalanced model is under progress.
-
+`LinDistFlow` builds the linear distflow constraints using JuMP. 
 The intent of this package is to allow users to build mathematical programs that include LinDistFlow constraints.
 No objective is added to the JuMP model in this package and so solving any problem defined by the constraints built by LinDistFlow.jl is a feasibility problem. Dictionaries of constraints are provided so that one can delete and/or modify the base constraints to fit their problem.
 
