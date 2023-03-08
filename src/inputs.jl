@@ -119,61 +119,37 @@ function Inputs(
     receiving_busses = collect(e[2] for e in edges)
     phases_into_bus = Dict(k=>v for (k,v) in zip(receiving_busses, phases))
 
+    input_type = SinglePhase
     if any(get(v, "nphases", 1) == 3 for v in values(Zdict))
-        Inputs{ThreePhase}(
-            edges,
-            linecodes,
-            linelengths,
-            busses,
-            phases,
-            substation_bus,
-            Pload,
-            Qload,
-            Sbase,
-            Vbase,
-            Ibase,
-            Zdict,
-            v0,
-            v_lolim, 
-            v_uplim,
-            Zbase,
-            Ntimesteps,
-            0.1,  # power factor
-            length(busses),  # Nnodes
-            P_up_bound,
-            Q_up_bound,
-            P_lo_bound,
-            Q_lo_bound,
-            phases_into_bus
-        )
-    else
-        Inputs{SinglePhase}(
-            edges,
-            linecodes,
-            linelengths,
-            busses,
-            phases,
-            substation_bus,
-            Pload,
-            Qload,
-            Sbase,
-            Vbase,
-            Ibase,
-            Zdict,
-            v0,
-            v_lolim, 
-            v_uplim,
-            Zbase,
-            Ntimesteps,
-            0.1,  # power factor
-            length(busses),  # Nnodes
-            P_up_bound,
-            Q_up_bound,
-            P_lo_bound,
-            Q_lo_bound,
-            phases_into_bus
-        )
+        input_type = ThreePhase
     end
+
+    Inputs{input_type}(
+        edges,
+        linecodes,
+        linelengths,
+        busses,
+        phases,
+        substation_bus,
+        Pload,
+        Qload,
+        Sbase,
+        Vbase,
+        Ibase,
+        Zdict,
+        v0,
+        v_lolim, 
+        v_uplim,
+        Zbase,
+        Ntimesteps,
+        0.1,  # power factor
+        length(busses),  # Nnodes
+        P_up_bound,
+        Q_up_bound,
+        P_lo_bound,
+        Q_lo_bound,
+        phases_into_bus
+    )
 end
 
 
