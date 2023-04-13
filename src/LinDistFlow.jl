@@ -4,13 +4,12 @@ using CommonOPF
 using JuMP
 using LinearAlgebra
 import SparseArrays: sparse
-import PowerModelsDistribution: parse_dss
 
 export 
     Inputs,
     singlephase38linesInputs,
     dsstxt_to_sparse_array, 
-    parse_dss,
+    dss_files_to_dict,
     build_ldf!,
     add_variables,
     constrain_power_balance,
@@ -30,7 +29,6 @@ export
     vreg,
     has_vreg
 
-include("inputs.jl")
 include("utils.jl")
 include("model.jl")
 

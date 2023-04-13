@@ -1,5 +1,8 @@
 # LinDistFlow Changelog
 
+## dev
+- move io.jl, types.jl, inputs.jl to CommonOPF.jl
+
 ## v0.2.0
 - add three phase, unbalanced capability and documentation
 - remove `dss_parse_lines` and `dss_parse_line_codes` methods; add `PowerModelsDistribution.parse_dss`

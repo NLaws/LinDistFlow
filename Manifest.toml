@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "12fcc179bb2ead76a895781f71bc4c55952b0db8"
+project_hash = "ad704509319f085cc896c5da352d43fe87b50629"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -58,7 +58,7 @@ version = "0.7.1"
 
 [[deps.CommonOPF]]
 deps = ["LinearAlgebra", "Logging", "PowerModelsDistribution"]
-git-tree-sha1 = "37df8dfba3eb7ea8d9517826e20f744df00dd761"
+git-tree-sha1 = "b488206e8e9c0483e9d72741761bc1cf2a406cc5"
 repo-rev = "main"
 repo-url = "https://github.com/NLaws/CommonOPF.jl"
 uuid = "dad7ea18-2b21-482e-81c1-e84414cc4b03"

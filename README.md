@@ -1,6 +1,8 @@
 # LinDistFlow
 Package for solving the Linear Distribution Flow model with one phase or three phases.
 
+[![Build Status](https://github.com/nlaws/LinDistFlow/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/nlaws/LinDistFlow/actions/workflows/CI.yml?query=branch%3Amain)
+
 ## Install
 ```julia
 using Pkg

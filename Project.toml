@@ -7,10 +7,8 @@ version = "0.2.0"
 CommonOPF = "dad7ea18-2b21-482e-81c1-e84414cc4b03"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-PowerModelsDistribution = "d7431456-977f-11e9-2de3-97ff7677985e"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
 JuMP = "^0.21, 1.0"
-PowerModelsDistribution = "0.14"
 julia = "1.4, 1.5, 1.6, 1.7"
