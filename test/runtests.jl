@@ -93,7 +93,7 @@ end
         p.Zdict[linecode]["xmatrix"] *= 1.25
     end
 
-    @test typeof(p) == LinDistFlow.Inputs{LinDistFlow.ThreePhase}
+    @test typeof(p) == LinDistFlow.Inputs{LinDistFlow.MultiPhase}
 
     m = Model(Ipopt.Optimizer)
     build_ldf!(m, p)

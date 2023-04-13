@@ -43,7 +43,7 @@ function add_variables(m, p::Inputs)
 end
 
 
-function add_variables(m, p::Inputs{ThreePhase})
+function add_variables(m, p::Inputs{MultiPhase})
     receiving_busses = collect(e[2] for e in p.edges)
     d = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
     d[p.substation_bus] = [1,2,3]
@@ -114,7 +114,7 @@ function constrain_power_balance(m, p::Inputs)
 end
 
 
-function constrain_power_balance(m, p::Inputs{ThreePhase})
+function constrain_power_balance(m, p::Inputs{MultiPhase})
     Pj = m[:Pj]
     Qj = m[:Qj]
     Pij = m[:Pij]
@@ -188,7 +188,7 @@ function constrain_substation_voltage(m, p::Inputs)
 end
 
 
-function constrain_substation_voltage(m, p::Inputs{ThreePhase})
+function constrain_substation_voltage(m, p::Inputs{MultiPhase})
     # @info "constrain_substation_voltage"
     @constraint(m, con_substationV[phs in 1:3, t in 1:p.Ntimesteps],
        m[:vsqrd][p.substation_bus, phs, t] == p.v0^2
@@ -215,7 +215,7 @@ function constrain_KVL(m, p::Inputs)
 end
 
 
-function constrain_KVL(m, p::Inputs{ThreePhase})
+function constrain_KVL(m, p::Inputs{MultiPhase})
     # TODO store voltage constraints in model dict
     w = m[:vsqrd]
     P = m[:Pij]
@@ -290,13 +290,13 @@ end
 
 
 """
-    constrain_loads(m, p::Inputs{ThreePhase})
+    constrain_loads(m, p::Inputs{MultiPhase})
 
 - set loads to negative of Inputs.Pload and Qload, which are normalized by Sbase when creating Inputs
 - keys of Pload and Qload must match Inputs.busses. Any missing keys have load set to zero.
 - Inputs.substation_bus is unconstrained, slack bus
 """
-function constrain_loads(m, p::Inputs{ThreePhase})
+function constrain_loads(m, p::Inputs{MultiPhase})
     Pj = m[:Pj]
     Qj = m[:Qj]
     m[:cons] = Dict()

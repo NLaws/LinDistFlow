@@ -27,7 +27,7 @@ function rij(i::String, j::String, p::Inputs{SinglePhase})
 end
 
 
-function rij(i::String, j::String, p::Inputs{ThreePhase})
+function rij(i::String, j::String, p::Inputs{MultiPhase})
     linecode = get_ijlinecode(i, j, p)
     linelength = get_ijlinelength(i, j, p)
     raw_rmatrix = p.Zdict[linecode]["rmatrix"] * linelength / p.Zbase
@@ -58,7 +58,7 @@ function xij(i::String, j::String, p::Inputs{SinglePhase})
 end
 
 
-function xij(i::String, j::String, p::Inputs{ThreePhase})
+function xij(i::String, j::String, p::Inputs{MultiPhase})
     linecode = get_ijlinecode(i, j, p)
     linelength = get_ijlinelength(i, j, p)
     raw_xmatrix = p.Zdict[linecode]["xmatrix"] * linelength / p.Zbase
@@ -99,7 +99,7 @@ function get_ijedge(i::String, j::String, p::Inputs)
 end
 
 
-function get_ijphases(i::String, j::String, p::Inputs{ThreePhase})
+function get_ijphases(i::String, j::String, p::Inputs{MultiPhase})
     ij_idx = get_ij_idx(i, j, p)
     return p.phases[ij_idx]
 end
@@ -153,7 +153,7 @@ function get_bus_values(var_prefix::String, m::JuMP.AbstractModel, p::Inputs)
 end
 
 
-function get_bus_values(var_prefix::String, m::JuMP.AbstractModel, p::Inputs{ThreePhase})
+function get_bus_values(var_prefix::String, m::JuMP.AbstractModel, p::Inputs{MultiPhase})
     var_refs = collect(v for v in all_variables(m) if startswith(string(v), var_prefix))
     d = Dict{String, Real}()
     for vr in var_refs
@@ -173,11 +173,11 @@ end
 
 
 """
-    MPij(i::String, j::String, p::Inputs{ThreePhase})
+    MPij(i::String, j::String, p::Inputs{MultiPhase})
 
 Real power coefficients for 3 phase voltage drop from node i to j
 """
-function MPij(i::String, j::String, p::Inputs{ThreePhase})
+function MPij(i::String, j::String, p::Inputs{MultiPhase})
     M = zeros((3,3))
     r = rij(i,j,p)
     x = xij(i,j,p)
@@ -189,11 +189,11 @@ end
 
 
 """
-    MQij(i::String, j::String, p::Inputs{ThreePhase})
+    MQij(i::String, j::String, p::Inputs{MultiPhase})
 
 Reactive power coefficients for 3 phase voltage drop from node i to j
 """
-function MQij(i::String, j::String, p::Inputs{ThreePhase})
+function MQij(i::String, j::String, p::Inputs{MultiPhase})
     M = zeros((3,3))
     r = rij(i,j,p)
     x = xij(i,j,p)
