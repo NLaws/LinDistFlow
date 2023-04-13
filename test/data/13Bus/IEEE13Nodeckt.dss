@@ -32,10 +32,10 @@ New Transformer.Reg3 phases=1 bank=reg1 XHL=0.01 kVAs=[1666 1666]
 new regcontrol.Reg3  transformer=Reg3 winding=2  vreg=122  band=2  ptratio=20 ctprim=700  R=3   X=9 
 
 
-!TRANSFORMER DEFINITION 
-New Transformer.XFM1  Phases=3   Windings=2  XHL=2
-~ wdg=1 bus=633       conn=Wye kv=4.16    kva=500    %r=.55     XHT=1
-~ wdg=2 bus=634       conn=Wye kv=0.480    kva=500    %r=.55   XLT=1
+!TRANSFORMER DEFINITION (nlaws: replaced with a line. parsing will raise an error if you include this xfmr because it is a redundant edge)
+!New Transformer.XFM1  Phases=3   Windings=2  XHL=2
+!~ wdg=1 bus=633       conn=Wye kv=4.16    kva=500    %r=.55     XHT=1
+!~ wdg=2 bus=634       conn=Wye kv=0.480    kva=500    %r=.55   XLT=1
 
 
 // these are local matrix line codes

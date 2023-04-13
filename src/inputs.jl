@@ -24,6 +24,7 @@
         P_lo_bound::Float64
         Q_lo_bound::Float64
         phases_into_bus::Dict{String, Vector{Int}}
+        regulators::Dict
     end
 """
 mutable struct Inputs{T<:Phases} <: AbstractInputs
@@ -51,6 +52,7 @@ mutable struct Inputs{T<:Phases} <: AbstractInputs
     P_lo_bound::Float64
     Q_lo_bound::Float64
     phases_into_bus::Dict{String, Vector{Int}}
+    regulators::Dict
 end
 # TODO line flow limits
 
@@ -101,6 +103,7 @@ function Inputs(
         Q_up_bound=1e4,
         P_lo_bound=-1e4,
         Q_lo_bound=-1e4,
+        regulators=Dict()
     )
     Ibase = Sbase / (Vbase * sqrt(3))
     # Ibase^2 should be used to recover amperage from lᵢⱼ ?
@@ -148,7 +151,8 @@ function Inputs(
         Q_up_bound,
         P_lo_bound,
         Q_lo_bound,
-        phases_into_bus
+        phases_into_bus,
+        regulators
     )
 end
 
@@ -190,10 +194,10 @@ function Inputs(
         P_lo_bound=-1e4,
         Q_lo_bound=-1e4,
     )
-    d = open(dssfilepath) do io  # 
-        parse_dss(io)
-    end
-    edges, linecodes, linelengths, linecodes_dict, phases = dss_dict_to_arrays(d)
+
+    d = dss_files_to_dict(dssfilepath)
+    edges, linecodes, linelengths, linecodes_dict, phases, Isquared_up_bounds, regulators = 
+        dss_dict_to_arrays(d, Sbase, Vbase)
 
     if isempty(Pload) && isempty(Qload)
         Pload, Qload = dss_loads(d)
@@ -218,6 +222,7 @@ function Inputs(
         Q_up_bound=Q_up_bound,
         P_lo_bound=P_lo_bound,
         Q_lo_bound=Q_lo_bound,
+        regulators=regulators
     )
 end
 

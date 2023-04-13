@@ -218,14 +218,14 @@ function recover_voltage_current(m, p::Inputs, nodetobusphase)
     for i in p.busses
         for j in j_to_k(i,p)
             tr_vᵢ = zeros(3)
-            Pᵢⱼ = zeros(3,3)
-            Qᵢⱼ = zeros(3,3)
+            Pij = zeros(3,3)
+            Qij = zeros(3,3)
 
             tr_vᵢ = value(variable_by_name(m, string("vⱼ", "[", i, "]")))
-            Pᵢⱼ = value(variable_by_name(m, string("Pᵢⱼ", "[", i, "-", j, "]")))
-            Qᵢⱼ = value(variable_by_name(m, string("Qᵢⱼ", "[", i, "-", j, "]")))
+            Pij = value(variable_by_name(m, string("Pij", "[", i, "-", j, "]")))
+            Qij = value(variable_by_name(m, string("Qij", "[", i, "-", j, "]")))
             
-            Sᵢⱼ = @. complex(Pᵢⱼ, Qᵢⱼ)
+            Sᵢⱼ = @. complex(Pij, Qij)
             r = rij(i,j,p)
             x = xij(i,j,p)
             zᵢⱼ = @. complex(r, x)
@@ -247,3 +247,48 @@ function recover_voltage_current(m, p::Inputs, nodetobusphase)
 end
 
 # TODO add check of rank 1 for exact solution (10g) in Gan and Low
+
+
+"""
+    reg_busses(p::Inputs)
+
+All of the regulated busses, i.e. the second bus in the regulated edges
+"""
+function reg_busses(p::Inputs)
+    getindex.(keys(p.regulators), 2)
+end
+
+
+function turn_ratio(p::Inputs, b::String)
+    if !(b in reg_busses(p))
+        throw(@error "Bus $b is not a regulated bus")
+    end
+    for (edge_tuple, d) in p.regulators
+        if edge_tuple[2] == b
+            return d[:turn_ratio]
+        end
+    end
+end
+
+
+function has_vreg(p::Inputs, b::String)
+    for (edge_tuple, d) in p.regulators
+        if edge_tuple[2] == b  && :vreg in keys(d)
+            return true
+        end
+    end
+    return false
+end
+
+
+function vreg(p::Inputs, b::String)
+    if !(b in reg_busses(p))
+        throw(@error "Bus $b is not a regulated bus")
+    end
+    for (edge_tuple, d) in p.regulators
+        if edge_tuple[2] == b  && :vreg in keys(d)
+            return d[:vreg]
+        end
+    end
+    false
+end

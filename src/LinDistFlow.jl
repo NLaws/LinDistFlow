@@ -1,5 +1,6 @@
 module LinDistFlow
 
+using CommonOPF
 using JuMP
 using LinearAlgebra
 import SparseArrays: sparse
@@ -23,10 +24,12 @@ export
     i_to_j, 
     j_to_k, 
     rij, 
-    xij
+    xij,
+    reg_busses,
+    turn_ratio,
+    vreg,
+    has_vreg
 
-include("types.jl")
-include("io.jl")
 include("inputs.jl")
 include("utils.jl")
 include("model.jl")

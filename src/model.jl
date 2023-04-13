@@ -25,8 +25,8 @@ function add_variables(m, p::Inputs)
     T = 1:p.Ntimesteps
     # bus injections
     @variables m begin
-        p.P_lo_bound <= Pⱼ[p.busses, T] <= p.P_up_bound
-        p.Q_lo_bound <= Qⱼ[p.busses, T] <= p.Q_up_bound
+        p.P_lo_bound <= Pj[p.busses, T] <= p.P_up_bound
+        p.Q_lo_bound <= Qj[p.busses, T] <= p.Q_up_bound
     end
 
     # voltage squared
@@ -35,9 +35,9 @@ function add_variables(m, p::Inputs)
     ij_edges = [string(i*"-"*j) for j in p.busses for i in i_to_j(j, p)]
 
     # line flows, power sent from i to j
-    @variable(m, p.P_lo_bound <= Pᵢⱼ[ij_edges, T] <= p.P_up_bound )
+    @variable(m, p.P_lo_bound <= Pij[ij_edges, T] <= p.P_up_bound )
     
-    @variable(m, p.Q_lo_bound <= Qᵢⱼ[ij_edges, T] <= p.Q_up_bound )
+    @variable(m, p.Q_lo_bound <= Qij[ij_edges, T] <= p.Q_up_bound )
 
     nothing
 end
@@ -50,8 +50,8 @@ function add_variables(m, p::Inputs{ThreePhase})
     T = 1:p.Ntimesteps
     # bus injections
     @variables m begin
-        p.P_lo_bound <= Pⱼ[b in keys(d), d[b], T] <= p.P_up_bound
-        p.Q_lo_bound <= Qⱼ[b in keys(d), d[b], T] <= p.Q_up_bound
+        p.P_lo_bound <= Pj[b in keys(d), d[b], T] <= p.P_up_bound
+        p.Q_lo_bound <= Qj[b in keys(d), d[b], T] <= p.Q_up_bound
     end
     
     # voltage squared
@@ -61,52 +61,52 @@ function add_variables(m, p::Inputs{ThreePhase})
     edge2phases = Dict(k=>v for (k,v) in zip(ij_edges, p.phases))  # this will fail for mesh network
 
     # line flows, power sent from i to j
-    @variable(m, p.P_lo_bound <= Pᵢⱼ[e in keys(edge2phases), edge2phases[e], T] <= p.P_up_bound )
+    @variable(m, p.P_lo_bound <= Pij[e in keys(edge2phases), edge2phases[e], T] <= p.P_up_bound )
     
-    @variable(m, p.Q_lo_bound <= Qᵢⱼ[e in keys(edge2phases), edge2phases[e], T] <= p.Q_up_bound )
+    @variable(m, p.Q_lo_bound <= Qij[e in keys(edge2phases), edge2phases[e], T] <= p.Q_up_bound )
     # TODO line flow limit inputs
     nothing
 end
 
 
 function constrain_power_balance(m, p::Inputs)
-    Pⱼ = m[:Pⱼ]
-    Qⱼ = m[:Qⱼ]
-    Pᵢⱼ = m[:Pᵢⱼ]
-    Qᵢⱼ = m[:Qᵢⱼ]
-    # TODO change Pⱼ and Qⱼ to expressions, make P₀ and Q₀ dv's, which will reduce # of variables
+    Pj = m[:Pj]
+    Qj = m[:Qj]
+    Pij = m[:Pij]
+    Qij = m[:Qij]
+    # TODO change Pj and Qj to expressions, make P₀ and Q₀ dv's, which will reduce # of variables
     # by (Nnodes - 1)*8760 and number of constraints by 6*(Nnodes - 1)*8760
     for j in p.busses
         if isempty(i_to_j(j, p)) && !isempty(j_to_k(j, p)) # source nodes
             pcon = @constraint(m,  [t in 1:p.Ntimesteps],
-                Pⱼ[j,t] - sum( Pᵢⱼ[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
+                Pj[j,t] - sum( Pij[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
             )
             qcon = @constraint(m, [t in 1:p.Ntimesteps],
-                Qⱼ[j,t] - sum( Qᵢⱼ[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
+                Qj[j,t] - sum( Qij[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
             )
         elseif isempty(i_to_j(j, p)) && isempty(j_to_k(j, p))  # unconnected nodes
-            @warn "Bus $j has no edges, setting Pⱼ and Qⱼ to zero."
+            @warn "Bus $j has no edges, setting Pj and Qj to zero."
             pcon = @constraint(m, [t in 1:p.Ntimesteps],
-                Pⱼ[j,t] == 0
+                Pj[j,t] == 0
             )
             qcon = @constraint(m, [t in 1:p.Ntimesteps],
-                Qⱼ[j,t] == 0
+                Qj[j,t] == 0
             )
         elseif !isempty(i_to_j(j, p)) && isempty(j_to_k(j, p))  # leaf nodes
             pcon = @constraint(m, [t in 1:p.Ntimesteps],
-                sum( Pᵢⱼ[string(i*"-"*j), t] for i in i_to_j(j, p) ) + Pⱼ[j, t] == 0
+                sum( Pij[string(i*"-"*j), t] for i in i_to_j(j, p) ) + Pj[j, t] == 0
             )
             qcon = @constraint(m, [t in 1:p.Ntimesteps],
-                sum( Qᵢⱼ[string(i*"-"*j), t] for i in i_to_j(j, p) ) + Qⱼ[j, t] == 0
+                sum( Qij[string(i*"-"*j), t] for i in i_to_j(j, p) ) + Qj[j, t] == 0
             )
         else
             pcon =  @constraint(m, [t in 1:p.Ntimesteps],
-                sum( Pᵢⱼ[string(i*"-"*j), t] for i in i_to_j(j, p) ) +
-                Pⱼ[j,t] - sum( Pᵢⱼ[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
+                sum( Pij[string(i*"-"*j), t] for i in i_to_j(j, p) ) +
+                Pj[j,t] - sum( Pij[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
             )
             qcon = @constraint(m, [t in 1:p.Ntimesteps],
-                sum( Qᵢⱼ[string(i*"-"*j), t] for i in i_to_j(j, p) ) +
-                Qⱼ[j,t] - sum( Qᵢⱼ[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
+                sum( Qij[string(i*"-"*j), t] for i in i_to_j(j, p) ) +
+                Qj[j,t] - sum( Qij[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
             )
         end
     end
@@ -115,10 +115,10 @@ end
 
 
 function constrain_power_balance(m, p::Inputs{ThreePhase})
-    Pⱼ = m[:Pⱼ]
-    Qⱼ = m[:Qⱼ]
-    Pᵢⱼ = m[:Pᵢⱼ]
-    Qᵢⱼ = m[:Qᵢⱼ]
+    Pj = m[:Pj]
+    Qj = m[:Qj]
+    Pij = m[:Pij]
+    Qij = m[:Qij]
 
     source_nodes = setdiff([string(e[1]) for e in p.edges],[e[2] for e in p.edges])
     for j in source_nodes
@@ -126,18 +126,18 @@ function constrain_power_balance(m, p::Inputs{ThreePhase})
             ks_on_phs = [k for k in j_to_k(j, p) if phs in p.phases_into_bus[k]]
             if !isempty(ks_on_phs)
                 @constraint(m, [t in 1:p.Ntimesteps],
-                    Pⱼ[j,phs,t] - sum( Pᵢⱼ[string(j*"-"*k), phs, t] for k in ks_on_phs ) == 0
+                    Pj[j,phs,t] - sum( Pij[string(j*"-"*k), phs, t] for k in ks_on_phs ) == 0
                 )
                 @constraint(m, [t in 1:p.Ntimesteps],
-                    Qⱼ[j,phs,t] - sum( Qᵢⱼ[string(j*"-"*k), phs, t] for k in ks_on_phs ) == 0
+                    Qj[j,phs,t] - sum( Qij[string(j*"-"*k), phs, t] for k in ks_on_phs ) == 0
                 )
             else
-                @warn "Source node $j is not connected to any busses on phase $phs. Setting Pⱼ and Qⱼ to zero."
+                @warn "Source node $j is not connected to any busses on phase $phs. Setting Pj and Qj to zero."
                 @constraint(m, [t in 1:p.Ntimesteps],
-                    Pⱼ[j,phs,t] == 0
+                    Pj[j,phs,t] == 0
                 )
                 @constraint(m, [t in 1:p.Ntimesteps],
-                    Qⱼ[j,phs,t] == 0
+                    Qj[j,phs,t] == 0
                 )
             end
         end
@@ -145,31 +145,31 @@ function constrain_power_balance(m, p::Inputs{ThreePhase})
 
     for j in setdiff(p.busses, source_nodes)
         if isempty(i_to_j(j, p)) && isempty(j_to_k(j, p))  # unconnected nodes
-            @warn "Bus $j has no edges in or out; setting Pⱼ and Qⱼ to zero."
+            @warn "Bus $j has no edges in or out; setting Pj and Qj to zero."
             @constraint(m, [phs in 1:3, t in 1:p.Ntimesteps],
-                Pⱼ[j,phs,t] == 0
+                Pj[j,phs,t] == 0
             )
             @constraint(m, [phs in 1:3, t in 1:p.Ntimesteps],
-                Qⱼ[j,phs,t] == 0
+                Qj[j,phs,t] == 0
             )
         else  
             for phs in p.phases_into_bus[j]
                 ks_on_phs = [k for k in j_to_k(j, p) if phs in p.phases_into_bus[k]]
                 if !isempty(ks_on_phs)  # mid node
                     @constraint(m, [t in 1:p.Ntimesteps],
-                        sum( Pᵢⱼ[string(i*"-"*j), phs, t] for i in i_to_j(j, p) ) +
-                        Pⱼ[j,phs,t] - sum( Pᵢⱼ[string(j*"-"*k), phs, t] for k in ks_on_phs ) == 0
+                        sum( Pij[string(i*"-"*j), phs, t] for i in i_to_j(j, p) ) +
+                        Pj[j,phs,t] - sum( Pij[string(j*"-"*k), phs, t] for k in ks_on_phs ) == 0
                     )
                     @constraint(m, [t in 1:p.Ntimesteps],
-                        sum( Qᵢⱼ[string(i*"-"*j), phs, t] for i in i_to_j(j, p) ) +
-                        Qⱼ[j,phs,t] - sum( Qᵢⱼ[string(j*"-"*k), phs, t] for k in ks_on_phs ) == 0
+                        sum( Qij[string(i*"-"*j), phs, t] for i in i_to_j(j, p) ) +
+                        Qj[j,phs,t] - sum( Qij[string(j*"-"*k), phs, t] for k in ks_on_phs ) == 0
                     )
                 else  # leaf node
                     @constraint(m, [t in 1:p.Ntimesteps],
-                        sum( Pᵢⱼ[string(i*"-"*j), phs, t] for i in i_to_j(j, p) ) + Pⱼ[j,phs,t] == 0
+                        sum( Pij[string(i*"-"*j), phs, t] for i in i_to_j(j, p) ) + Pj[j,phs,t] == 0
                     )
                     @constraint(m, [t in 1:p.Ntimesteps],
-                        sum( Qᵢⱼ[string(i*"-"*j), phs, t] for i in i_to_j(j, p) ) + Qⱼ[j,phs,t] == 0
+                        sum( Qij[string(i*"-"*j), phs, t] for i in i_to_j(j, p) ) + Qj[j,phs,t] == 0
                     )
                 end
 
@@ -198,8 +198,8 @@ end
 
 function constrain_KVL(m, p::Inputs)
     w = m[:vsqrd]
-    P = m[:Pᵢⱼ]
-    Q = m[:Qᵢⱼ]
+    P = m[:Pij]
+    Q = m[:Qij]
     for j in p.busses
         for i in i_to_j(j, p)  # for radial network there is only one i in i_to_j
             i_j = string(i*"-"*j)
@@ -216,21 +216,37 @@ end
 
 
 function constrain_KVL(m, p::Inputs{ThreePhase})
-    # @info "constrain_KVL"
+    # TODO store voltage constraints in model dict
     w = m[:vsqrd]
-    P = m[:Pᵢⱼ]
-    Q = m[:Qᵢⱼ]
+    P = m[:Pij]
+    Q = m[:Qij]
     for j in p.busses
         for i in i_to_j(j, p)  # for radial network there is only one i in i_to_j
-            i_j = string(i*"-"*j)
-            MP = MPij(i,j,p)
-            MQ = MQij(i,j,p)
-            for phs in p.phases_into_bus[j]
-                @constraint(m, [t in 1:p.Ntimesteps],
-                    w[j,phs,t] == w[i,phs,t]
-                        + sum(MP[phs,k] * P[i_j,k,t] for k=p.phases_into_bus[j])
-                        + sum(MQ[phs,k] * Q[i_j,k,t] for k=p.phases_into_bus[j])
-                )
+            if !( (i,j) in keys(p.regulators) )
+                i_j = string(i*"-"*j)
+                MP = MPij(i,j,p)
+                MQ = MQij(i,j,p)
+                for phs in p.phases_into_bus[j]
+                    @constraint(m, [t in 1:p.Ntimesteps],
+                        w[j,phs,t] == w[i,phs,t]
+                            + sum(MP[phs,k] * P[i_j,k,t] for k=p.phases_into_bus[j])
+                            + sum(MQ[phs,k] * Q[i_j,k,t] for k=p.phases_into_bus[j])
+                    )
+                end
+            else
+                if has_vreg(p, j)  # TODO make common module for opf and put has_vreg in it
+                    for phs in p.phases_into_bus[j]
+                        @constraint(m, [t in 1:p.Ntimesteps],
+                            w[j,phs,t] == p.regulators[(i,j)][:vreg]^2
+                        )
+                    end
+                else  # default turn_ratio is 1.0
+                    for phs in p.phases_into_bus[j]
+                        @constraint(m, [t in 1:p.Ntimesteps],
+                            w[j,phs,t] == w[i,phs,t] * p.regulators[(i,j)][:turn_ratio]^2 
+                        )
+                    end
+                end
             end
         end
     end
@@ -246,26 +262,26 @@ end
 - Inputs.substation_bus is unconstrained, slack bus
 """
 function constrain_loads(m, p::Inputs)
-    Pⱼ = m[:Pⱼ]
-    Qⱼ = m[:Qⱼ]
+    Pj = m[:Pj]
+    Qj = m[:Qj]
     
     for j in p.busses
         if j in keys(p.Pload)
             @constraint(m, [t in 1:p.Ntimesteps],
-                Pⱼ[j,t] == -p.Pload[j][t] / p.Sbase
+                Pj[j,t] == -p.Pload[j][t] / p.Sbase
             )
         elseif j != p.substation_bus
             @constraint(m, [t in 1:p.Ntimesteps],
-                Pⱼ[j,t] == 0
+                Pj[j,t] == 0
             )
         end
         if j in keys(p.Qload)
             @constraint(m, [t in 1:p.Ntimesteps],
-                Qⱼ[j,t] == -p.Qload[j][t] / p.Sbase
+                Qj[j,t] == -p.Qload[j][t] / p.Sbase
             )
         elseif j != p.substation_bus
             @constraint(m, [t in 1:p.Ntimesteps],
-                Qⱼ[j,t] == 0
+                Qj[j,t] == 0
             )
         end
     end
@@ -281,8 +297,8 @@ end
 - Inputs.substation_bus is unconstrained, slack bus
 """
 function constrain_loads(m, p::Inputs{ThreePhase})
-    Pⱼ = m[:Pⱼ]
-    Qⱼ = m[:Qⱼ]
+    Pj = m[:Pj]
+    Qj = m[:Qj]
     m[:cons] = Dict()
     m[:cons][:injection_equalities] = Dict()
     
@@ -295,20 +311,20 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
                     m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                        Pⱼ[j,phs,t] == -p.Pload[j][phs][t] / p.Sbase
+                        Pj[j,phs,t] == -p.Pload[j][phs][t] / p.Sbase
                     )
                 end
             end
             
             for phs in setdiff(p.phases_into_bus[j], keys(p.Pload[j]))
                 m[:cons][:injection_equalities][j][:P][phs] = m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                    Pⱼ[j,phs,t] == 0
+                    Pj[j,phs,t] == 0
                 )
             end
         elseif j != p.substation_bus
             for phs in p.phases_into_bus[j]
                 m[:cons][:injection_equalities][j][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                    Pⱼ[j,phs,t] == 0
+                    Pj[j,phs,t] == 0
                 )
             end
         end  # real loads
@@ -320,20 +336,20 @@ function constrain_loads(m, p::Inputs{ThreePhase})
                     @warn "Load provided for bus $j, phase $phs but there are no lines into that point."
                 else
                     m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                        Qⱼ[j,phs,t] == -p.Qload[j][phs][t] / p.Sbase
+                        Qj[j,phs,t] == -p.Qload[j][phs][t] / p.Sbase
                     )
                 end
             end
             for phs in setdiff(p.phases_into_bus[j], keys(p.Qload[j]))
                 m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                    Qⱼ[j,phs,t] == 0
+                    Qj[j,phs,t] == 0
                 )
             end
 
         elseif j != p.substation_bus
             for phs in p.phases_into_bus[j]
                 m[:cons][:injection_equalities][j][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                    Qⱼ[j,phs,t] == 0
+                    Qj[j,phs,t] == 0
                 )
             end
         end  # reactive loads

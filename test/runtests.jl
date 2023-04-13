@@ -1,10 +1,16 @@
+using LinDistFlow
 using Test
 using Random
-using LinDistFlow
 using HiGHS
 using JuMP
 using Ipopt
 Random.seed!(42)
+
+# # hack for local testing
+# using Pkg
+# Pkg.activate("..")
+# using LinDistFlow
+# Pkg.activate(".")
 
 
 @testset "single phase 38-nodes 3 time steps" begin
@@ -100,7 +106,7 @@ end
         for phs in keys(p.Pload[b])
             delete(m, m[:cons][:injection_equalities][b][:P][phs])
             m[:cons][:injection_equalities][b][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                m[:Pⱼ][b,phs,t] == -p.Pload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t])
+                m[:Pj][b,phs,t] == -p.Pload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t])
             )
         end
     end
@@ -108,7 +114,7 @@ end
         for phs in keys(p.Qload[b])
             delete(m, m[:cons][:injection_equalities][b][:Q][phs])
             m[:cons][:injection_equalities][b][:Q][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                m[:Qⱼ][b,phs,t] == -p.Qload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t])
+                m[:Qj][b,phs,t] == -p.Qload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t])
             )
         end
     end
@@ -123,26 +129,26 @@ end
             if b == "675"  # capacitor injecting 200 kvar on all three phases
                 m[:cons][:injection_equalities][b][:Q][phs] = 
                 @constraint(m, [t in 1:p.Ntimesteps],
-                    m[:Qⱼ][b,phs,t] == 
+                    m[:Qj][b,phs,t] == 
                     -p.Qload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t]) + 
                     m[:Qvar][b][phs][t] / p.Sbase +
                     200_000 / p.Sbase
                 )
                 delete(m, m[:cons][:injection_equalities][b][:P][phs])
                 m[:cons][:injection_equalities][b][:P][phs] = @constraint(m, [t in 1:p.Ntimesteps],
-                    m[:Pⱼ][b,phs,t] == -p.Pload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t])
+                    m[:Pj][b,phs,t] == -p.Pload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t])
                 )
             elseif b in keys(p.Qload) && phs in keys(p.Qload[b])
                 m[:cons][:injection_equalities][b][:Q][phs] = 
                 @constraint(m, [t in 1:p.Ntimesteps],
-                    m[:Qⱼ][b,phs,t] == 
+                    m[:Qj][b,phs,t] == 
                     -p.Qload[b][phs][t] / p.Sbase * (a0 + a1 * m[:vsqrd][b,phs,t]) + 
                     m[:Qvar][b][phs][t] / p.Sbase
                 )
             else
                 m[:cons][:injection_equalities][b][:Q][phs] = 
                 @constraint(m, [t in 1:p.Ntimesteps],
-                    m[:Qⱼ][b,phs,t] == 
+                    m[:Qj][b,phs,t] == 
                     m[:Qvar][b][phs][t] / p.Sbase
                 )
             end
@@ -153,7 +159,7 @@ end
     delete(m, m[:cons][:injection_equalities]["611"][:Q][3])
     m[:cons][:injection_equalities]["611"][:Q][3] = 
         @constraint(m, [t in 1:p.Ntimesteps],
-            m[:Qⱼ]["611",3,t] == 
+            m[:Qj]["611",3,t] == 
             -p.Qload["611"][3][t] / p.Sbase * (a0 + a1 * m[:vsqrd]["611",3,t]) + 100_000 / p.Sbase
         )
     
@@ -182,4 +188,56 @@ end
     for b in Qresource_nodes, phs in p.phases_into_bus[b]
         @test -test_values[b][phs] ≈ value(m[:Qvar][b][phs][1])/p.Sbase rtol=1e-3
     end
+end
+
+
+@testset "multiphase voltage regulator" begin
+
+    p = Inputs(
+        joinpath("data", "13bus", "IEEE13Nodeckt.dss"), 
+        "rg60";
+        Pload=Dict(),
+        Qload=Dict(),
+        Sbase=5_000_000,
+        Vbase=4160, 
+        v0 = 1.00,
+        v_uplim = 1.05,
+        v_lolim = 0.95,
+        Ntimesteps = 1,
+        P_up_bound=1e5,
+        Q_up_bound=1e5,
+        P_lo_bound=-1e5,
+        Q_lo_bound=-1e5,
+    );
+
+    regs = Dict( ("684","611") => Dict(:turn_ratio => 1.05) )
+    p.regulators = regs
+
+    m = Model(HiGHS.Optimizer)
+    build_ldf!(m, p)
+    @objective(m, Min, sum(
+        m[:Pj][p.substation_bus, phs, 1] + m[:Qj][p.substation_bus, phs, 1]
+        for phs in 1:3)
+    )
+    optimize!(m)
+    @test termination_status(m) == MOI.OPTIMAL
+
+    vs = value.(m[:vsqrd]).data
+    @test vs[("611", 3, 1)] ≈ 1.05^2 * vs[("684", 3, 1)]
+
+    regs = Dict( ("684","611") => Dict(:vreg => 1.02) )
+    p.regulators = regs
+
+    m = Model(HiGHS.Optimizer)
+    build_ldf!(m, p)
+    @objective(m, Min, sum(
+        m[:Pj][p.substation_bus, phs, 1] + m[:Qj][p.substation_bus, phs, 1]
+        for phs in 1:3)
+    )
+    optimize!(m)
+    @test termination_status(m) == MOI.OPTIMAL
+
+    vs = value.(m[:vsqrd]).data
+    @test vs[("611", 3, 1)] ≈ 1.02^2
+
 end

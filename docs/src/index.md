@@ -26,8 +26,8 @@ build_ldf!
 # Variables
 Let `m` be the JuMP.Model provided by the user, then the variables can be accessed via:
 - `m[:vsqrd]` voltage magnitude squared, indexed on busses, (phases), time
-- `m[:Pⱼ], m[:Qⱼ]` net real, reactive power injection, indexed on busses, (phases), time
-- `m[:Pᵢⱼ], m[:Qᵢⱼ]` net real, reactive line flow, indexed on edges, (phases), time
+- `m[:Pj], m[:Qj]` net real, reactive power injection, indexed on busses, (phases), time
+- `m[:Pij], m[:Qij]` net real, reactive line flow, indexed on edges, (phases), time
 After a model has been solved using `JuMP.optimize!` variable values can be extracted with `JuMP.value`. For more see [Getting started with JuMP](https://jump.dev/JuMP.jl/stable/tutorials/getting_started/getting_started_with_JuMP/#Getting-started-with-JuMP).
 
 
@@ -56,7 +56,7 @@ Note that the time index was not provided in the `delete` command in this exampl
 The deleted constraints can then be replaced with a new set of constraints. For example:
 ```julia
 m[:cons][:injection_equalities]["680"][:P][1] = @constraint(m, [t in 1:p.Ntimesteps],
-    m[:Pⱼ]["680",1,t] == -1e3 / p.Sbase
+    m[:Pj]["680",1,t] == -1e3 / p.Sbase
 )
 ```
 where `p` is short for "parameters" and is the `Inputs` struct for the problem of interest. Note that it is not necessary to store the new constraints in the `m[:cons][:injection_equalities]`.
