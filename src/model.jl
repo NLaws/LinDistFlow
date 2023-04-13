@@ -44,8 +44,7 @@ end
 
 
 function add_variables(m, p::Inputs{MultiPhase})
-    receiving_busses = collect(e[2] for e in p.edges)
-    d = Dict(k=>v for (k,v) in zip(receiving_busses, p.phases))
+    d = p.phases_into_bus
     d[p.substation_bus] = [1,2,3]
     T = 1:p.Ntimesteps
     # bus injections
