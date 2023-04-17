@@ -1,23 +1,3 @@
-"""
-    function i_to_j(j::String, p::Inputs)
-find all busses upstream of bus j
-
-!!! note
-    In a radial network this function should return an Array with length of 1.
-"""
-function i_to_j(j::String, p::Inputs)
-    convert(Array{String, 1}, map(x->x[1], filter(t->t[2]==j, p.edges)))
-end
-
-
-"""
-    function j_to_k(j::String, p::Inputs)
-find all busses downstream of bus j
-"""
-function j_to_k(j::String, p::Inputs)
-    convert(Array{String, 1}, map(x->x[2], filter(t->t[1]==j, p.edges)))
-end
-
 
 function rij(i::String, j::String, p::Inputs{SinglePhase})
     linecode = get_ijlinecode(i, j, p)
@@ -81,39 +61,9 @@ function xij(i::String, j::String, p::Inputs{MultiPhase})
 end
 
 
-function get_ijlinelength(i::String, j::String, p::Inputs)
-    ij_idx = get_ij_idx(i, j, p)
-    return p.linelengths[ij_idx]
-end
-
-
-function get_ijlinecode(i::String, j::String, p::Inputs)
-    ij_idx = get_ij_idx(i, j, p)
-    return p.linecodes[ij_idx]
-end
-
-
-function get_ijedge(i::String, j::String, p::Inputs)
-    ij_idx = get_ij_idx(i, j, p)
-    return p.edges[ij_idx]
-end
-
-
 function get_ijphases(i::String, j::String, p::Inputs{MultiPhase})
     ij_idx = get_ij_idx(i, j, p)
     return p.phases[ij_idx]
-end
-
-
-function get_ij_idx(i::String, j::String, p::Inputs)
-    ij_idxs = findall(t->(t[1]==i && t[2]==j), p.edges)
-    if length(ij_idxs) > 1
-        error("found more than one edge for i=$i and j=$j")
-    elseif length(ij_idxs) == 0
-        error("found no matching edges for i=$i and j=$j")
-    else
-        return ij_idxs[1]
-    end
 end
 
 

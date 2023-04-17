@@ -1,7 +1,7 @@
 # LinDistFlow Changelog
 
-## dev
-- move io.jl, types.jl, inputs.jl to CommonOPF.jl
+## v0.3.0
+- move io.jl, types.jl, inputs.jl and some utils.jl to CommonOPF (new dependency)
 
 ## v0.2.0
 - add three phase, unbalanced capability and documentation
