@@ -1,5 +1,8 @@
 # LinDistFlow Changelog
 
+## v0.3.1
+- update to CommonOPF v0.2.1
+
 ## v0.3.0
 - move io.jl, types.jl, inputs.jl and some utils.jl to CommonOPF (new dependency)
 

@@ -64,9 +64,9 @@ version = "0.7.1"
 
 [[deps.CommonOPF]]
 deps = ["Graphs", "LinearAlgebra", "Logging", "MetaGraphs", "PowerModelsDistribution"]
-git-tree-sha1 = "0b0840e3a9ffa518cdc5a169174ea87234a02454"
+git-tree-sha1 = "43e89c7e7680fd9029dd7226f6451844923b4ed5"
 uuid = "dad7ea18-2b21-482e-81c1-e84414cc4b03"
-version = "0.2.0"
+version = "0.2.1"
 
 [[deps.CommonSubexpressions]]
 deps = ["MacroTools", "Test"]
@@ -459,9 +459,9 @@ version = "2.2.0"
 
 [[deps.StaticArrays]]
 deps = ["LinearAlgebra", "Random", "StaticArraysCore", "Statistics"]
-git-tree-sha1 = "70e0cc0c0f9ef7ea76b3d7a50ada18c8c52e69a2"
+git-tree-sha1 = "63e84b7fdf5021026d0f17f76af7c57772313d99"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.5.20"
+version = "1.5.21"
 
 [[deps.StaticArraysCore]]
 git-tree-sha1 = "6b7ba252635a5eff6a0b0664a41ee140a1c9e72a"
