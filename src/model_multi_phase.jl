@@ -120,7 +120,7 @@ function constrain_KVL(m, p::Inputs{MultiPhase})
                     )
                 end
             else
-                if has_vreg(p, j)  # TODO make common module for opf and put has_vreg in it
+                if has_vreg(p, j)
                     for phs in p.phases_into_bus[j]
                         @constraint(m, [t in 1:p.Ntimesteps],
                             w[j,phs,t] == p.regulators[(i,j)][:vreg]^2

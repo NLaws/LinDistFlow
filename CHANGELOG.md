@@ -1,7 +1,9 @@
 # LinDistFlow Changelog
 
-## dev
+## v0.3.2
 - deprecate `constrain_bounds`
+- mv `reg_busses`, `turn_ratio`, `has_vreg`, `vreg` to CommonOPF
+-  split model.jl into model_single_phase.jl and model_multi_phase.jl
 
 ## v0.3.1
 - update to CommonOPF v0.2.1
