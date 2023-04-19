@@ -64,9 +64,9 @@ version = "0.7.1"
 
 [[deps.CommonOPF]]
 deps = ["Graphs", "LinearAlgebra", "Logging", "MetaGraphs", "PowerModelsDistribution"]
-git-tree-sha1 = "43e89c7e7680fd9029dd7226f6451844923b4ed5"
+git-tree-sha1 = "e1768a4d3d85855ee9bf1c0529a647819c4f29d7"
 uuid = "dad7ea18-2b21-482e-81c1-e84414cc4b03"
-version = "0.2.1"
+version = "0.2.2"
 
 [[deps.CommonSubexpressions]]
 deps = ["MacroTools", "Test"]

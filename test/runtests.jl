@@ -210,8 +210,8 @@ end
         Q_lo_bound=-1e5,
     );
 
-    regs = Dict( ("684","611") => Dict(:turn_ratio => 1.05) )
-    p.regulators = regs
+    # only phase 3 684 -> 611
+    p.regulators = Dict( ("684","611") => Dict(:turn_ratio => 1.05) )
 
     m = Model(HiGHS.Optimizer)
     build_ldf!(m, p)
@@ -225,8 +225,7 @@ end
     vs = value.(m[:vsqrd]).data
     @test vs[("611", 3, 1)] ≈ 1.05^2 * vs[("684", 3, 1)]
 
-    regs = Dict( ("684","611") => Dict(:vreg => 1.02) )
-    p.regulators = regs
+    p.regulators = Dict( ("684","611") => Dict(:vreg => 1.02) )
 
     m = Model(HiGHS.Optimizer)
     build_ldf!(m, p)
@@ -239,5 +238,21 @@ end
 
     vs = value.(m[:vsqrd]).data
     @test vs[("611", 3, 1)] ≈ 1.02^2
+
+    # all three phases 632 -> 633
+    p.regulators = Dict( ("632","633") => Dict(:vreg => 1.03) )
+    m = Model(HiGHS.Optimizer)
+    build_ldf!(m, p)
+    @objective(m, Min, sum(
+        m[:Pj][p.substation_bus, phs, 1] + m[:Qj][p.substation_bus, phs, 1]
+        for phs in 1:3)
+    )
+    optimize!(m)
+    @test termination_status(m) == MOI.OPTIMAL
+    vs = value.(m[:vsqrd]).data
+    @test has_vreg(p, "633")
+    for phs in 1:3
+        @test vs[("633", phs, 1)] ≈ 1.03^2
+    end
 
 end
