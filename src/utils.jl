@@ -211,10 +211,10 @@ function remove_bus!(j::String, p::Inputs{MultiPhase})
     # get all the old values
     i, k = i_to_j(j, p)[1], j_to_k(j, p)[1]
     if j in reg_busses(p)
-        for edge in keys(p.regulators)
+        for (edge, regdict) in p.regulators
             if edge[2] == j
-                edge[2] = k
                 @warn "Moving regulator bus $j to bus $k in remove_bus!"
+                p.regulators[(i,k)] = regdict
             end
         end
     end
