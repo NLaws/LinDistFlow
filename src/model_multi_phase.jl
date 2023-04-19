@@ -17,12 +17,12 @@ function add_variables(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
     T = 1:p.Ntimesteps
     # bus injections
     @variables m begin
-        p.P_lo_bound <= Pj[b in keys(d), d[b], T] <= p.P_up_bound
-        p.Q_lo_bound <= Qj[b in keys(d), d[b], T] <= p.Q_up_bound
+        p.P_lo_bound <= Pj[b in p.busses, d[b], T] <= p.P_up_bound
+        p.Q_lo_bound <= Qj[b in p.busses, d[b], T] <= p.Q_up_bound
     end
     
     # voltage squared
-    @variable(m, p.v_lolim^2 <= vsqrd[b in keys(d), d[b], T] <= p.v_uplim^2 ) 
+    @variable(m, p.v_lolim^2 <= vsqrd[b in p.busses, d[b], T] <= p.v_uplim^2 ) 
     
     edge2phases = Dict(k=>v for (k,v) in zip(p.edge_keys, p.phases))  # this will fail for mesh network
 
