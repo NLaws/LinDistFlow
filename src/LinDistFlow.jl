@@ -27,7 +27,9 @@ export
     turn_ratio,
     vreg,
     has_vreg,
-    make_graph
+    make_graph,
+    remove_bus!,
+    combine_parallel_lines!
 
 include("utils.jl")
 include("model_single_phase.jl")
