@@ -16,7 +16,6 @@ export
     constrain_substation_voltage,
     constrain_KVL,
     constrain_loads,
-    constrain_bounds,
     get_bus_values, 
     get_edge_values, 
     # recover_voltage_current,  # TODO validate this method
@@ -27,9 +26,11 @@ export
     reg_busses,
     turn_ratio,
     vreg,
-    has_vreg
+    has_vreg,
+    make_graph
 
 include("utils.jl")
-include("model.jl")
+include("model_single_phase.jl")
+include("model_multi_phase.jl")
 
 end # module

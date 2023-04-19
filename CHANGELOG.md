@@ -1,5 +1,8 @@
 # LinDistFlow Changelog
 
+## dev
+- deprecate `constrain_bounds`
+
 ## v0.3.1
 - update to CommonOPF v0.2.1
 
