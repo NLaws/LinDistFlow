@@ -1,5 +1,10 @@
 # LinDistFlow Changelog
 
+## v0.4.0
+- add single phase voltage regulators
+- multiphase regulators index `:turn_ratio` on phase (breaking from CommonOPF)
+- add `combine_parallel_lines!` and `remove_bus!`
+
 ## v0.3.2
 - deprecate `constrain_bounds`
 - mv `reg_busses`, `turn_ratio`, `has_vreg`, `vreg` to CommonOPF

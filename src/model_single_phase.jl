@@ -104,10 +104,22 @@ function constrain_KVL(m, p::Inputs)
             i_j = string(i*"-"*j)
             rᵢⱼ = rij(i,j,p)
             xᵢⱼ = xij(i,j,p)
-            vcon = @constraint(m, [t in 1:p.Ntimesteps],
-                w[j,t] == w[i,t]
-                    - 2*(rᵢⱼ * P[i_j,t] +  xᵢⱼ * Q[i_j,t])
-            )
+            if !( (i,j) in keys(p.regulators) )
+                vcon = @constraint(m, [t in 1:p.Ntimesteps],
+                    w[j,t] == w[i,t]
+                        - 2*(rᵢⱼ * P[i_j,t] +  xᵢⱼ * Q[i_j,t])
+                )
+            else
+                if has_vreg(p, j)
+                    vcon = @constraint(m, [t in 1:p.Ntimesteps],
+                        w[j,t] == p.regulators[(i,j)][:vreg]^2
+                    )
+                else  # default turn_ratio is 1.0
+                    @constraint(m, [t in 1:p.Ntimesteps],
+                        w[j,t] == w[i,t] * p.regulators[(i,j)][:turn_ratio]^2 
+                    )
+                end
+            end
         end
     end
     nothing

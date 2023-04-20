@@ -1,7 +1,7 @@
 name = "LinDistFlow"
 uuid = "bf674bac-ffe4-48d3-9f32-72124ffa9ede"
 authors = ["Nick Laws <laws.nick@gmail.com>"]
-version = "0.3.2"
+version = "0.4.0"
 
 [deps]
 CommonOPF = "dad7ea18-2b21-482e-81c1-e84414cc4b03"
@@ -10,6 +10,6 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
-CommonOPF = "0.2.2"
+CommonOPF = "0.3.0"
 JuMP = "^0.21, 1.0"
 julia = "1"

@@ -130,13 +130,13 @@ function constrain_KVL(m, p::Inputs{MultiPhase})
                 if has_vreg(p, j)
                     for phs in p.phases_into_bus[j]
                         @constraint(m, [t in 1:p.Ntimesteps],
-                            w[j,phs,t] == p.regulators[(i,j)][:vreg]^2
+                            w[j,phs,t] == p.regulators[(i,j)][:vreg][phs]^2
                         )
                     end
                 else  # default turn_ratio is 1.0
                     for phs in p.phases_into_bus[j]
                         @constraint(m, [t in 1:p.Ntimesteps],
-                            w[j,phs,t] == w[i,phs,t] * p.regulators[(i,j)][:turn_ratio]^2 
+                            w[j,phs,t] == w[i,phs,t] * p.regulators[(i,j)][:turn_ratio][phs]^2 
                         )
                     end
                 end

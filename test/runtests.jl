@@ -211,7 +211,7 @@ end
     );
 
     # only phase 3 684 -> 611
-    p.regulators = Dict( ("684","611") => Dict(:turn_ratio => 1.05) )
+    p.regulators = Dict( ("684","611") => Dict(:turn_ratio => Dict(3 => 1.05)) )
 
     m = Model(HiGHS.Optimizer)
     build_ldf!(m, p)
@@ -225,7 +225,7 @@ end
     vs = value.(m[:vsqrd]).data
     @test vs[("611", 3, 1)] ≈ 1.05^2 * vs[("684", 3, 1)]
 
-    p.regulators = Dict( ("684","611") => Dict(:vreg => 1.02) )
+    p.regulators = Dict( ("684","611") => Dict(:vreg => Dict(3 => 1.02)) )
 
     m = Model(HiGHS.Optimizer)
     build_ldf!(m, p)
@@ -240,7 +240,7 @@ end
     @test vs[("611", 3, 1)] ≈ 1.02^2
 
     # all three phases 632 -> 633
-    p.regulators = Dict( ("632","633") => Dict(:vreg => 1.03) )
+    p.regulators = Dict( ("632","633") => Dict(:vreg => Dict(1 => 1.03, 2 => 1.03, 3 => 1.03)) )
     m = Model(HiGHS.Optimizer)
     build_ldf!(m, p)
     @objective(m, Min, sum(
