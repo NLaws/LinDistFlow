@@ -1,7 +1,7 @@
 name = "LinDistFlow"
 uuid = "bf674bac-ffe4-48d3-9f32-72124ffa9ede"
 authors = ["Nick Laws <laws.nick@gmail.com>"]
-version = "0.4.0"
+version = "0.4.1"
 
 [deps]
 CommonOPF = "dad7ea18-2b21-482e-81c1-e84414cc4b03"

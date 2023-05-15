@@ -1,5 +1,8 @@
 # LinDistFlow Changelog
 
+## v0.4.1
+- store `m[:injectioncons]` and `m[:loadbalcons]` in single phase models
+
 ## v0.4.0
 - add single phase voltage regulators
 - multiphase regulators index `:turn_ratio` on phase (breaking from CommonOPF)

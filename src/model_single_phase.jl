@@ -46,6 +46,7 @@ function constrain_power_balance(m, p::Inputs)
     Qj = m[:Qj]
     Pij = m[:Pij]
     Qij = m[:Qij]
+    m[:loadbalcons] = Dict()
     # TODO change Pj and Qj to expressions, make P₀ and Q₀ dv's, which will reduce # of variables
     # by (Nnodes - 1)*8760 and number of constraints by 6*(Nnodes - 1)*8760
     for j in p.busses
@@ -81,6 +82,7 @@ function constrain_power_balance(m, p::Inputs)
                 Qj[j,t] - sum( Qij[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
             )
         end
+        m[:loadbalcons][j] = Dict("p" => pcon, "q" => qcon)
     end
     nothing
 end
@@ -132,30 +134,35 @@ end
 - set loads to negative of Inputs.Pload, which are normalized by Sbase when creating Inputs
 - keys of Pload must match Inputs.busses. Any missing keys have load set to zero.
 - Inputs.substation_bus is unconstrained, slack bus
+
+TODO this method is same as BranchFlowModel single phase: should it be moved to CommonOPF?
 """
 function constrain_loads(m, p::Inputs)
     Pj = m[:Pj]
     Qj = m[:Qj]
-    
-    for j in p.busses
+    m[:injectioncons] = Dict()
+    for j in setdiff(p.busses, [p.substation_bus])
+        m[:injectioncons][j] = Dict()
         if j in keys(p.Pload)
-            @constraint(m, [t in 1:p.Ntimesteps],
+            con = @constraint(m, [t in 1:p.Ntimesteps],
                 Pj[j,t] == -p.Pload[j][t] / p.Sbase
             )
-        elseif j != p.substation_bus
-            @constraint(m, [t in 1:p.Ntimesteps],
+        else
+            con = @constraint(m, [t in 1:p.Ntimesteps],
                 Pj[j,t] == 0
             )
         end
+        m[:injectioncons][j]["p"] = con
         if j in keys(p.Qload)
-            @constraint(m, [t in 1:p.Ntimesteps],
+            con = @constraint(m, [t in 1:p.Ntimesteps],
                 Qj[j,t] == -p.Qload[j][t] / p.Sbase
             )
-        elseif j != p.substation_bus
-            @constraint(m, [t in 1:p.Ntimesteps],
+        else
+            con = @constraint(m, [t in 1:p.Ntimesteps],
                 Qj[j,t] == 0
             )
         end
+        m[:injectioncons][j]["q"] = con
     end
     nothing
 end
