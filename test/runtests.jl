@@ -256,3 +256,59 @@ end
     end
 
 end
+
+
+@testset "constrain line amps" begin
+    
+    p = Inputs(
+        joinpath("data", "13bus", "IEEE13Nodeckt.dss"), 
+        "rg60";
+        Pload=Dict(),
+        Qload=Dict(),
+        Sbase=5_000_000, # msankur has 5,000 kvar * 1e3
+        Vbase=4160, 
+        v0 = 1.00,
+        v_uplim = 1.05,
+        v_lolim = 0.95,
+        Ntimesteps = 1,
+        P_up_bound=1e5,
+        Q_up_bound=1e5,
+        P_lo_bound=-1e5,
+        Q_lo_bound=-1e5,
+    );
+
+    m = Model(HiGHS.Optimizer)
+    build_ldf!(m, p)
+    @objective(m, Min, sum(
+        m[:Pj][p.substation_bus, phs, 1] + m[:Qj][p.substation_bus, phs, 1]
+        for phs in 1:3)
+    )
+    constrain_line_amps(m,p)
+    optimize!(m)
+
+    # find the max amps then constrain it, should get infeasible problem
+    optimal_amps = []
+    for (edge_key, phs_dict) in m[:amps_pu]
+        for (phs, time_dict) in phs_dict
+            for (t, var) in time_dict
+                push!(optimal_amps, value(var) * p.Ibase)
+            end
+        end
+    end
+    max_amps = maximum(optimal_amps)
+    p.Isquared_up_bounds = Dict(
+        k => (max_amps - 10)^2
+        for k in keys(p.Isquared_up_bounds)
+    )
+
+    m = Model(HiGHS.Optimizer)
+    build_ldf!(m, p)
+    @objective(m, Min, sum(
+        m[:Pj][p.substation_bus, phs, 1] + m[:Qj][p.substation_bus, phs, 1]
+        for phs in 1:3)
+    )
+
+    constrain_line_amps(m,p)
+    optimize!(m)
+    @test termination_status(m) == MOI.INFEASIBLE
+end

@@ -16,6 +16,7 @@ export
     constrain_substation_voltage,
     constrain_KVL,
     constrain_loads,
+    constrain_line_amps,
     get_bus_values, 
     get_edge_values, 
     # recover_voltage_current,  # TODO validate this method
