@@ -218,24 +218,37 @@ end
 """
     constrain_line_amps(m, p::Inputs{MultiPhase})
 
-Estimating the line amps as ``|\\Delta V / Z|``
+Estimating the line amps as ``|\\Delta V_{ij} / Z|`` where we estimate
+
+``
+|\\Delta V_{ij}| \\approx r_{ij} P_{ij} + x_{ij} Q_{ij}
+``
+
 """
 function constrain_line_amps(m, p::Inputs{MultiPhase})
-    w = m[:vsqrd]
+    Pij = m[:Pij]
+    Qij = m[:Qij]
     m[:amps_pu] = Dict(ek => Dict() for ek in p.edge_keys)
     for j in p.busses
         for i in i_to_j(j, p)  # for radial network there is only one i in i_to_j
             ij_linecode = get_ijlinecode(i,j,p)
+            i_j = string(i*"-"*j)
             amps_pu = sqrt(p.Isquared_up_bounds[ij_linecode]) / p.Ibase
-            z = sqrt(rij(i,j,p)^2 + xij(i,j,p)^2)  # in per-unit
+            r = rij(i,j,p)
+            x = xij(i,j,p)
+            z = sqrt(r^2 + x^2)  # in per-unit
             
             for phs in p.phases_into_bus[j]
                 @constraint(m, [t in 1:p.Ntimesteps],
-                    -amps_pu <= (w[i,phs,t] - w[j,phs,t]) / z[phs,phs] <= amps_pu
+                    -amps_pu <= 
+                    sum(r[phs,k] * Pij[i_j,k,t] + x[phs,k] * Qij[i_j,k,t] for k=p.phases_into_bus[j]) 
+                    / z[phs,phs] 
+                    <= amps_pu
                 )
                 m[:amps_pu][i*"-"*j][phs] = Dict()
                 for t in 1:p.Ntimesteps
-                    m[:amps_pu][i*"-"*j][phs][t] = (w[i,phs,t] - w[j,phs,t]) / z[phs,phs]
+                    m[:amps_pu][i*"-"*j][phs][t] = 
+                    sum(r[phs,k] * Pij[i_j,k,t] + x[phs,k] * Qij[i_j,k,t] for k=p.phases_into_bus[j]) / z[phs,phs]
                 end
                 # TODO better storage of line amps (make an expression?)
                 # TODO line amps in Results?
