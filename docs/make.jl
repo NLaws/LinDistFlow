@@ -1,10 +1,11 @@
 using Documenter
+using CommonOPF
 using LinDistFlow
 
 makedocs(
     sitename = "LinDistFlow.jl Documentation",
     format = Documenter.HTML(),
-    modules = [LinDistFlow],
+    modules = [LinDistFlow, CommonOPF],
     workdir = joinpath(@__DIR__, ".."),
     pages = [
         "User Documentation" => "index.md",

@@ -5,7 +5,7 @@ From [[1]](@ref)
 Notation:
 - ``P_{ij}`` real power flow from node ``i`` to node ``j``
 - ``p_j`` real power injection on node ``j``
-- ``\\mathcal{N}^+` set of all nodes in network except the source
+- ``\mathcal{N}^+`` set of all nodes in network except the source
 - ``w_j`` voltage magnitude squared on node ``j``
 
 ```math
