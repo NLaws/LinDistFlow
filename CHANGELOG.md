@@ -1,5 +1,9 @@
 # LinDistFlow Changelog
 
+## v0.5.0
+- deprecate `get_edge_values` and `get_bus_values` in favor of `CommonOPF.get_variable_values`
+- add `Results` for `SinglePhase` and `MultiPhase` models
+
 ## v0.4.1
 - store `m[:injectioncons]` and `m[:loadbalcons]` in single phase models
 

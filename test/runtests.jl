@@ -26,7 +26,7 @@ Random.seed!(42)
     Sbase = 1e6
     Vbase = 12.5e3
 
-    ldf_inputs = Inputs(
+    p = Inputs(
         joinpath("data", "singlephase38lines", "master.dss"), 
         "0";
         Pload=Pload, 
@@ -40,11 +40,16 @@ Random.seed!(42)
     );
 
     m = Model(HiGHS.Optimizer)
-    build_ldf!(m, ldf_inputs)
+    build_ldf!(m, p)
     # can add objective here
     optimize!(m)
 
     @test termination_status(m) == MOI.OPTIMAL
+
+    r = Results(m, p, digits=15)
+    for bus in loadnodes
+        @test r.real_power_injections[bus][1] ≈ -Pload[bus][1]
+    end
 
 end
 
@@ -172,16 +177,6 @@ end
         )
     )
 
-    ## does not work ?!
-    # @NLobjective(m, Min,
-    #     0.5* sqrt(sum( (m[:Qvar][b][phs][1] / p.Sbase)^2 for b in Qresource_nodes, phs in p.phases_into_bus[b])) +
-    #     sqrt(sum(
-    #         (m[:vsqrd][b,phs1,1] - m[:vsqrd][b,phs2,1])^2
-    #         for b in setdiff(p.busses, [p.substation_bus]), 
-    #             (phs1, phs2) in [[1,2], [1,3], [2,3]] if phs1 in p.phases_into_bus[b] && phs2 in p.phases_into_bus[b]
-    #     ))
-    # )
-
     optimize!(m)
     @test termination_status(m) == MOI.LOCALLY_SOLVED
         
@@ -222,8 +217,8 @@ end
     optimize!(m)
     @test termination_status(m) == MOI.OPTIMAL
 
-    vs = value.(m[:vsqrd]).data
-    @test vs[("611", 3, 1)] ≈ 1.05^2 * vs[("684", 3, 1)]
+    r = Results(m, p)
+    @test r.voltage_magnitudes["611"][3][1] ≈ 1.05 * r.voltage_magnitudes["684"][3][1]
 
     p.regulators = Dict( ("684","611") => Dict(:vreg => Dict(3 => 1.02)) )
 
@@ -236,8 +231,8 @@ end
     optimize!(m)
     @test termination_status(m) == MOI.OPTIMAL
 
-    vs = value.(m[:vsqrd]).data
-    @test vs[("611", 3, 1)] ≈ 1.02^2
+    r = Results(m, p)
+    @test r.voltage_magnitudes["611"][3][1] ≈ 1.02
 
     # all three phases 632 -> 633
     p.regulators = Dict( ("632","633") => Dict(:vreg => Dict(1 => 1.03, 2 => 1.03, 3 => 1.03)) )
@@ -249,10 +244,10 @@ end
     )
     optimize!(m)
     @test termination_status(m) == MOI.OPTIMAL
-    vs = value.(m[:vsqrd]).data
+    r = Results(m, p)
     @test has_vreg(p, "633")
     for phs in 1:3
-        @test vs[("633", phs, 1)] ≈ 1.03^2
+        @test r.voltage_magnitudes["633"][phs][1] ≈ 1.03
     end
 
 end

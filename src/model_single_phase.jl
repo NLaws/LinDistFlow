@@ -11,7 +11,7 @@ constrain_loads(m, p)
 ```
 """
 function build_ldf!(m::JuMP.AbstractModel, p::Inputs)
-
+    # TODO confirm tree graph here, raise exception if not tree (b/c o.w. get key error in add_variables)
     add_variables(m, p)
     constrain_power_balance(m, p)
     constrain_substation_voltage(m, p)
@@ -73,7 +73,7 @@ function constrain_power_balance(m, p::Inputs)
                 sum( Qij[string(i*"-"*j), t] for i in i_to_j(j, p) ) + Qj[j, t] == 0
             )
         else
-            pcon =  @constraint(m, [t in 1:p.Ntimesteps],
+            pcon = @constraint(m, [t in 1:p.Ntimesteps],
                 sum( Pij[string(i*"-"*j), t] for i in i_to_j(j, p) ) +
                 Pj[j,t] - sum( Pij[string(j*"-"*k), t] for k in j_to_k(j, p) ) == 0
             )

@@ -67,52 +67,6 @@ function get_ijphases(i::String, j::String, p::Inputs{MultiPhase})
 end
 
 
-function get_edge_values(var_prefix::String, m::JuMP.AbstractModel, p::Inputs)
-    vals = Float64[]
-    for edge in p.edges
-        var = string(var_prefix, "[", edge[1], "-", edge[2], "]")
-        try
-            val = value(variable_by_name(m, var))
-            if startswith(var_prefix, "l")
-                val = sqrt(val)
-            end
-            push!(vals, round(val; digits=8))
-        catch e
-            println(var, "failed", e)
-        end
-    end
-    return vals
-end
-
-
-function get_bus_values(var_prefix::String, m::JuMP.AbstractModel, p::Inputs)
-    vals = Float64[]
-    for b in p.busses
-        var = string(var_prefix,  "[", b, "]")
-        try
-            val = value(variable_by_name(m, var))
-            if startswith(var_prefix, "v")
-                val = sqrt(val)
-            end
-            push!(vals, round(val; digits=7))
-        catch e
-            println(var, " failed: ", e)
-        end
-    end
-    return vals
-end
-
-
-function get_bus_values(var_prefix::String, m::JuMP.AbstractModel, p::Inputs{MultiPhase})
-    var_refs = collect(v for v in all_variables(m) if startswith(string(v), var_prefix))
-    d = Dict{String, Real}()
-    for vr in var_refs
-        d[string(vr)] = value(vr)
-    end
-    return d
-end
-
-
 function get_constraints_by_variable_name(m, v::String)
     ac = ConstraintRef[]
     for tup in list_of_constraint_types(m)
