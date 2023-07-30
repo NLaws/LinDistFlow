@@ -12,6 +12,8 @@ Random.seed!(42)
 # using LinDistFlow
 # Pkg.activate(".")
 
+@testset "LinDistFlow" begin
+
 
 @testset "single phase 38-nodes 3 time steps" begin
     T = 3
@@ -301,3 +303,5 @@ end
     optimize!(m)
     @test termination_status(m) == MOI.INFEASIBLE
 end
+
+end # all package tests
