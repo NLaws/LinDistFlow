@@ -1,6 +1,7 @@
 using Documenter
 using CommonOPF
 using LinDistFlow
+using JuMP
 
 makedocs(
     sitename = "LinDistFlow.jl Documentation",

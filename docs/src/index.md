@@ -10,7 +10,7 @@ There are two methods for creating `Inputs`:
 2. Providing the network topology
 ```@docs
 Inputs(::String, ::String)
-Inputs(::Array{Tuple}, ::Array{String}, ::Array{Float64}, ::Vector{Vector}, ::String)
+Inputs(::AbstractVector{<:Tuple}, ::AbstractVector{<:AbstractString}, ::AbstractVector{<:Real}, ::AbstractVector{<:AbstractVector}, ::String)
 ```
 Both of the `Inputs` functions return a mutable `Inputs` struct:
 ```@docs
@@ -62,3 +62,15 @@ m[:cons][:injection_equalities]["680"][:P][1] = @constraint(m, [t in 1:p.Ntimest
 where `p` is short for "parameters" and is the `Inputs` struct for the problem of interest. Note that it is not necessary to store the new constraints in the `m[:cons][:injection_equalities]`.
 
 See the [JuMP documentation](https://jump.dev/JuMP.jl/stable/manual/constraints/#Delete-a-constraint) for more on deleting constraints.
+
+# Results
+Results for the power flow variables can be retrieved via the `Results` methods described below. 
+The fields of the `Results` struct are dictionaries that have the same indices as the variables described above.
+```@docs
+Results(m::JuMP.AbstractModel, p::Inputs{SinglePhase}; digits=8)
+Results(m::JuMP.AbstractModel, p::Inputs{MultiPhase}; digits=8)
+```
+Approximate line amperage values can also be obtained via `get_line_amp_approximations` for multi-phase models.
+```@docs
+get_line_amp_approximations
+```

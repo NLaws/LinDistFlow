@@ -215,6 +215,17 @@ function constrain_loads(m, p::Inputs{MultiPhase})
 end
 
 
+"""
+    define_line_amp_estimates(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
+
+Estimating the line amps as ``|(V_i - V_j) / Z|`` where we use the approximation:
+
+``
+|V_i - V_j| \\approx r_{ij} P_{ij} + x_{ij} Q_{ij}
+``
+
+The expressions are stored in the `model.obj_dict` with key `:amps_pu`.
+"""
 function define_line_amp_estimates(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
     Pij = m[:Pij]
     Qij = m[:Qij]
@@ -238,13 +249,9 @@ end
 """
     constrain_line_amps(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
 
-Estimating the line amps as ``|(V_i - V_j) / Z|`` where we use the approximation:
+Constrain the estimated line amps using the `p.Isquared_up_bounds` in both the postive and negative directions.
 
-``
-|V_i - V_j| \\approx r_{ij} P_{ij} + x_{ij} Q_{ij}
-``
-
-The expressions are stored in the `model.obj_dict` with key `:amps_pu`.
+See `define_line_amp_estimates` for more.
 """
 function constrain_line_amps(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
     if !(:amps_pu in keys(m.obj_dict))

@@ -14,7 +14,7 @@ end
 
 
 """
-    Results(m::AbstractModel, p::Inputs{SinglePhase})
+    Results(m::AbstractModel, p::Inputs{SinglePhase}; digits=8)
 
 return a `Results` struct with fieldnames:
 
@@ -44,7 +44,7 @@ end
 
 
 """
-    Results(m::AbstractModel, p::Inputs{MultiPhase})
+    Results(m::AbstractModel, p::Inputs{MultiPhase}; digits=8)
 
 return a `Results` struct with fieldnames:
 
@@ -114,6 +114,15 @@ function CommonOPF.get_variable_values(var::Symbol, m::JuMP.AbstractModel, p::In
 end
 
 
+"""
+    get_line_amp_approximations(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
+
+Estimating the line amps as ``|(V_i - V_j) / Z|`` where we use the approximation:
+
+``
+|V_i - V_j| \\approx r_{ij} P_{ij} + x_{ij} Q_{ij}
+``
+"""
 function get_line_amp_approximations(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
     if !(:amps_pu in keys(m.obj_dict))
         define_line_amp_estimates(m, p)
