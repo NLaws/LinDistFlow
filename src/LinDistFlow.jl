@@ -29,7 +29,8 @@ export
     make_graph,
     remove_bus!,
     combine_parallel_lines!,
-    Results
+    Results,
+    get_line_amp_approximations
 
 include("utils.jl")
 include("model_single_phase.jl")

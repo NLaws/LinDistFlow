@@ -282,15 +282,9 @@ end
     optimize!(m)
 
     # find the max amps then constrain it, should get infeasible problem
-    optimal_amps = []
-    for (edge_key, phs_dict) in m[:amps_pu]
-        for (phs, time_dict) in phs_dict
-            for (t, var) in time_dict
-                push!(optimal_amps, value(var) * p.Ibase)
-            end
-        end
-    end
-    max_amps = maximum(optimal_amps)
+    optimal_amps = get_line_amp_approximations(m, p)
+    # collect all the values by unpacking the dict of dicts
+    max_amps = maximum(vcat(collect(vcat(v...) for v in values.(values(optimal_amps)))...))
     p.Isquared_up_bounds = Dict(
         k => (max_amps - 10)^2
         for k in keys(p.Isquared_up_bounds)

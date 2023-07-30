@@ -112,3 +112,18 @@ function CommonOPF.get_variable_values(var::Symbol, m::JuMP.AbstractModel, p::In
     end
     return d
 end
+
+
+function get_line_amp_approximations(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
+    if !(:amps_pu in keys(m.obj_dict))
+        define_line_amp_estimates(m, p)
+    end
+    optimal_amps = Dict{String, Dict{Int, Vector{Float64}}}()
+    for (edge_key, phs_dict) in m[:amps_pu]
+        optimal_amps[edge_key] = Dict()
+        for (phs, time_expression) in phs_dict
+            optimal_amps[edge_key][phs] = value.(time_expression) * p.Ibase
+        end
+    end
+    return optimal_amps
+end
