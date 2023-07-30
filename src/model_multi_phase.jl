@@ -216,7 +216,7 @@ end
 
 
 """
-    define_line_amp_estimates(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
+    define_line_amps_pu(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
 
 Estimating the line amps as ``|(V_i - V_j) / Z|`` where we use the approximation:
 
@@ -226,7 +226,7 @@ Estimating the line amps as ``|(V_i - V_j) / Z|`` where we use the approximation
 
 The expressions are stored in the `model.obj_dict` with key `:amps_pu`.
 """
-function define_line_amp_estimates(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
+function define_line_amps_pu(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
     Pij = m[:Pij]
     Qij = m[:Qij]
     m[:amps_pu] = Dict(ek => Dict() for ek in p.edge_keys)
@@ -251,11 +251,11 @@ end
 
 Constrain the estimated line amps using the `p.Isquared_up_bounds` in both the postive and negative directions.
 
-See `define_line_amp_estimates` for more.
+See `define_line_amps_pu` for more.
 """
 function constrain_line_amps(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
     if !(:amps_pu in keys(m.obj_dict))
-        define_line_amp_estimates(m, p)
+        define_line_amps_pu(m, p)
     end
     for j in p.busses
         for i in i_to_j(j, p)  # for radial network there is only one i in i_to_j

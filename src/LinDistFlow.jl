@@ -30,8 +30,9 @@ export
     remove_bus!,
     combine_parallel_lines!,
     Results,
-    get_line_amp_approximations,
-    define_line_amp_estimates
+    get_line_amps,
+    define_line_amps_pu,
+    get_peak_line_amps_percent
 
 include("utils.jl")
 include("model_single_phase.jl")

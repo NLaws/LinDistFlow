@@ -255,7 +255,7 @@ end
 end
 
 
-@testset "constrain line amps" begin
+@testset "line amps" begin
     
     p = Inputs(
         joinpath("data", "13bus", "IEEE13Nodeckt.dss"), 
@@ -284,7 +284,8 @@ end
     optimize!(m)
 
     # find the max amps then constrain it, should get infeasible problem
-    optimal_amps = get_line_amp_approximations(m, p)
+    optimal_amps = get_line_amps(m, p)
+    optimal_amps_percent = get_peak_line_amps_percent(m, p)
     # collect all the values by unpacking the dict of dicts
     max_amps = maximum(vcat(collect(vcat(v...) for v in values.(values(optimal_amps)))...))
     p.Isquared_up_bounds = Dict(

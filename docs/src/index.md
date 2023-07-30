@@ -70,7 +70,8 @@ The fields of the `Results` struct are dictionaries that have the same indices a
 Results(m::JuMP.AbstractModel, p::Inputs{SinglePhase}; digits=8)
 Results(m::JuMP.AbstractModel, p::Inputs{MultiPhase}; digits=8)
 ```
-Approximate line amperage values can also be obtained via `get_line_amp_approximations` for multi-phase models.
+Approximate line amperage values can be obtained via `get_line_amps` and `get_peak_line_amps_percent` for multi-phase models.
 ```@docs
-get_line_amp_approximations
+get_line_amps
+get_peak_line_amps_percent
 ```

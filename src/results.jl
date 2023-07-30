@@ -115,17 +115,16 @@ end
 
 
 """
-    get_line_amp_approximations(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
+    get_line_amps(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
 
 Estimating the line amps as ``|(V_i - V_j) / Z|`` where we use the approximation:
-
 ``
 |V_i - V_j| \\approx r_{ij} P_{ij} + x_{ij} Q_{ij}
 ``
 """
-function get_line_amp_approximations(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
+function get_line_amps(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
     if !(:amps_pu in keys(m.obj_dict))
-        define_line_amp_estimates(m, p)
+        define_line_amps_pu(m, p)
     end
     optimal_amps = Dict{String, Dict{Int, Vector{Float64}}}()
     for (edge_key, phs_dict) in m[:amps_pu]
@@ -135,4 +134,34 @@ function get_line_amp_approximations(m::JuMP.AbstractModel, p::Inputs{MultiPhase
         end
     end
     return optimal_amps
+end
+
+
+"""
+    get_peak_line_amps_percent(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
+
+A `Dict{String, Float64}` with edge keys and peak percent line amps (peak over all time steps)
+
+Estimating the line amps as ``|(V_i - V_j) / Z|`` where we use the approximation:
+``
+|V_i - V_j| \\approx r_{ij} P_{ij} + x_{ij} Q_{ij}
+``
+"""
+function get_peak_line_amps_percent(m::JuMP.AbstractModel, p::Inputs{MultiPhase})
+    if !(:amps_pu in keys(m.obj_dict))
+        define_line_amps_pu(m, p)
+    end
+    optimal_amps = get_line_amps(m, p)
+    peak_percents = Dict{String, Float64}()
+    for j in p.busses
+        for i in i_to_j(j, p)  # for radial network there is only one i in i_to_j
+            i_j = string(i*"-"*j)
+            ij_linecode = get_ijlinecode(i,j,p)
+            amps_limit = sqrt(p.Isquared_up_bounds[ij_linecode])
+            for phs in p.phases_into_bus[j]
+                peak_percents[i_j] = maximum(optimal_amps[i_j][phs]) / amps_limit * 100
+            end
+        end
+    end
+    return peak_percents
 end
