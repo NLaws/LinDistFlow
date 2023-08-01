@@ -1,5 +1,8 @@
 # LinDistFlow Changelog
 
+## v0.5.2
+- upgrade CommonOPF to v0.3.7
+
 ## v0.5.1
 - add `get_line_amps`, `get_peak_line_amps_percent`, and `define_line_amps_pu`
 - mv SinglePhase `rij` and `xij` to CommonOPF
