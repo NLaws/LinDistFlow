@@ -1,12 +1,4 @@
-
-function rij(i::String, j::String, p::Inputs{SinglePhase})
-    linecode = get_ijlinecode(i, j, p)
-    linelength = get_ijlinelength(i, j, p)
-    rmatrix = p.Zdict[linecode]["rmatrix"] * linelength / p.Zbase
-    return rmatrix[1]
-end
-
-
+# TODO mv MultiPhase rij xij to CommonOPF (requires something new to handle BFM vs. LDF)
 function rij(i::String, j::String, p::Inputs{MultiPhase})
     linecode = get_ijlinecode(i, j, p)
     linelength = get_ijlinelength(i, j, p)
@@ -27,14 +19,6 @@ function rij(i::String, j::String, p::Inputs{MultiPhase})
     rmatrix[phs1,phs2] = raw_rmatrix[1,2]
     rmatrix[phs2,phs1] = raw_rmatrix[2,1]
     return rmatrix
-end
-
-
-function xij(i::String, j::String, p::Inputs{SinglePhase})
-    linecode = get_ijlinecode(i, j, p)
-    linelength = get_ijlinelength(i, j, p)
-    xmatrix = p.Zdict[linecode]["xmatrix"] * linelength / p.Zbase
-    return xmatrix[1]
 end
 
 

@@ -1,6 +1,7 @@
 module LinDistFlow
 
 using CommonOPF
+import CommonOPF: rij, xij  # extending to MultiPhase, need to consolidate into CommonOPF
 using JuMP
 using LinearAlgebra
 import SparseArrays: sparse

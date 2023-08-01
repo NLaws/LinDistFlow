@@ -1,7 +1,8 @@
 # LinDistFlow Changelog
 
-## dev
+## v0.5.1
 - add `get_line_amps`, `get_peak_line_amps_percent`, and `define_line_amps_pu`
+- mv SinglePhase `rij` and `xij` to CommonOPF
 
 ## v0.5.0
 - deprecate `get_edge_values` and `get_bus_values` in favor of `CommonOPF.get_variable_values`
