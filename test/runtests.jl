@@ -305,4 +305,63 @@ end
     @test termination_status(m) == MOI.INFEASIBLE
 end
 
+
+@testset "reduce_tree! MultiPhase" begin
+    #=           c -- e                     -- e
+                / [1,2]                   /
+    a -[1,2,3]- b           ->       a -- b
+                \ [2,3]                   \
+                 d -- f                     -- f
+    nodes c and d should be removed b/c there is no load at them and the phases are the same
+    on both sides
+    =#
+    edges = [("a", "b"), ("b", "c"), ("b", "d"), ("c", "e"), ("d", "f")]
+    linecodes = ["three_phase", "two_phase", "two_phase", "two_phase", "two_phase"]
+    linelengths = repeat([1.0], length(edges))
+    phases = [[1,2,3], [1,2], [2,3], [2,1], [3,2]]  # change order intentionally
+    substation_bus = "a"
+    Pload = Dict("e" => [1.0], "f" => [1.0])
+    Qload = Dict("e" => [0.1], "f" => [0.1])
+    Zdict = Dict(
+        "three_phase" => Dict("rmatrix"=> [1.0 0.1 0.1; 0.1 1.0 0.1; 0.1 0.1 1.0], "xmatrix"=> [1.0 0.1 0.1; 0.1 1.0 0.1; 0.1 0.1 1.0], "nphases"=> 3),
+        "two_phase" => Dict("rmatrix"=> [1.0 0.1 ; 0.1 1.0], "xmatrix"=> [1.0 0.1 ; 0.1 1.0], "nphases"=> 2),
+    )
+    v0 = 1.0
+
+    p = Inputs(
+        edges, 
+        linecodes, 
+        linelengths, 
+        phases,
+        substation_bus;
+        Pload=Pload, 
+        Qload=Qload, 
+        Sbase=1, 
+        Vbase=1, 
+        Zdict=Zdict, 
+        v0=v0, 
+        v_lolim=0.95, 
+        v_uplim=1.05,
+        Ntimesteps=1, 
+        P_up_bound=1e4,
+        Q_up_bound=1e4,
+        P_lo_bound=-1e4,
+        Q_lo_bound=-1e4,
+        Isquared_up_bounds=Dict{String, Float64}(),
+        relaxed=true
+    )
+
+    LinDistFlow.CommonOPF.reduce_tree!(p)
+
+    @test !("c" in p.busses)
+    @test !("d" in p.busses)
+    @test !(("b", "c") in p.edges)
+    @test !(("b", "d") in p.edges)
+    @test !(("c", "e") in p.edges)
+    @test !(("d", "f") in p.edges)
+    @test ("b", "e") in p.edges
+    @test ("b", "f") in p.edges
+
+end
+
 end # all package tests
