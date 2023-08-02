@@ -310,21 +310,22 @@ end
     #=           c -- e                     -- e
                 / [1,2]                   /
     a -[1,2,3]- b           ->       a -- b
-                \ [2,3]                   \
+                \ [3]                   \
                  d -- f                     -- f
     nodes c and d should be removed b/c there is no load at them and the phases are the same
     on both sides
     =#
     edges = [("a", "b"), ("b", "c"), ("b", "d"), ("c", "e"), ("d", "f")]
-    linecodes = ["three_phase", "two_phase", "two_phase", "two_phase", "two_phase"]
+    linecodes = ["three_phase", "two_phase", "one_phase", "two_phase", "one_phase"]
     linelengths = repeat([1.0], length(edges))
-    phases = [[1,2,3], [1,2], [2,3], [2,1], [3,2]]  # change order intentionally
+    phases = [[1,2,3], [1,2], [3], [2,1], [3]]
     substation_bus = "a"
-    Pload = Dict("e" => [1.0], "f" => [1.0])
-    Qload = Dict("e" => [0.1], "f" => [0.1])
+    Pload = Dict("e" => [1.0], "f" => Dict(1 => [1.0]))  # default phases of 1 added to e bus loads
+    Qload = Dict("e" => [0.1], "f" => Dict(3 => [0.1]))
     Zdict = Dict(
         "three_phase" => Dict("rmatrix"=> [1.0 0.1 0.1; 0.1 1.0 0.1; 0.1 0.1 1.0], "xmatrix"=> [1.0 0.1 0.1; 0.1 1.0 0.1; 0.1 0.1 1.0], "nphases"=> 3),
         "two_phase" => Dict("rmatrix"=> [1.0 0.1 ; 0.1 1.0], "xmatrix"=> [1.0 0.1 ; 0.1 1.0], "nphases"=> 2),
+        "one_phase" => Dict("rmatrix"=> [1.0], "xmatrix"=> [0.1], "nphases"=> 1),
     )
     v0 = 1.0
 
@@ -362,6 +363,10 @@ end
     @test ("b", "e") in p.edges
     @test ("b", "f") in p.edges
 
+    # make sure we can still build the model
+    m = Model(HiGHS.Optimizer)
+    @test_warn "Load provided for bus f, phase 1 but there are no lines into that point." build_ldf!(m, p)
+    constrain_line_amps(m,p)  # with CommonOPF v0.3.7 this causes an error due to divide by zero -> NaN coef in JuMP expression
 end
 
 end # all package tests

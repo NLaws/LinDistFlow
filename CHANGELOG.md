@@ -1,5 +1,8 @@
 # LinDistFlow Changelog
 
+## v0.5.3
+- upgrade CommonOPF to v0.3.8
+
 ## v0.5.2
 - upgrade CommonOPF to v0.3.7
 
