@@ -32,7 +32,7 @@ Q_{ij,\phi} + q_{j,\phi} = \sum_{k:j\rightarrow k} Q_{jk,\phi} \ \forall j \in \
 \end{bmatrix} \\
 \boldsymbol{M}_{Q,ij} = \begin{bmatrix}
 -2x_{11}                &   x_{12}+\sqrt{3}r_{12} &   x_{13}-\sqrt{3}r_{13} \\
-  x_{21}-\sqrt{3}r{21}  & -2x_{22}                &   x_{23}+\sqrt{3}r_{23} \\
+  x_{21}-\sqrt{3}r_{21}  & -2x_{22}                &   x_{23}+\sqrt{3}r_{23} \\
   x_{31}+\sqrt{3}r_{31} &   x_{32}-\sqrt{3}r_{32} & -2x_{33}
 \end{bmatrix} 
 \end{aligned}
